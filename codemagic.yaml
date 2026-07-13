@@ -3,6 +3,8 @@ workflows:
     name: iOS Release to Apple App Store Connect
     instance_type: mac_mini_m2
     max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic
     environment:
       node: v20.15.0
       xcode: latest
