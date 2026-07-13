@@ -58,9 +58,11 @@ interface AppDataContextType {
   updateSpeaker: (speaker: ConventionSpeaker) => void;
   deleteSpeaker: (id: string) => void;
   addScheduleItem: (item: Omit<ScheduleItem, 'id'>) => void;
+  updateScheduleItem: (item: ScheduleItem) => void;
   deleteScheduleItem: (id: string) => void;
   deleteNotification: (id: string) => void;
   createAnnouncement: (titleOrObj: any, titleEn?: string, bodyFr?: string, bodyEn?: string, type?: any, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'none', authorName?: string, authorRole?: string) => void;
+  updateAnnouncement: (item: AnnouncementItem) => void;
   deleteAnnouncement: (id: string) => void;
   togglePinAnnouncement: (id: string) => void;
   likeAnnouncement: (id: string) => void;
@@ -908,169 +910,86 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => { try { localStorage.setItem('mediamondemjg_kzi_info_v2', JSON.stringify(kziWelcomeInfo)); } catch (e) { console.warn(e); } }, [kziWelcomeInfo]);
 
   useEffect(() => {
-    // 1. Speakers sync & merge
+    // 1. Speakers sync directly from Firebase Firestore (Single Source of Truth)
     const unsubSpeakers = onSnapshot(collection(db, 'convention_speakers'), (snapshot) => {
-      const liveSpeakers: ConventionSpeaker[] = [];
-      snapshot.forEach((docSnap) => {
-        liveSpeakers.push(docSnap.data() as ConventionSpeaker);
-      });
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_speakers') || '[]');
-      setSpeakers(prev => {
-        const map = new Map<string, ConventionSpeaker>();
-        prev.forEach(s => !delIds.includes(s.id) && map.set(s.id, s));
-        liveSpeakers.forEach(s => !delIds.includes(s.id) && map.set(s.id, s));
-        const merged = Array.from(map.values());
-        merged.forEach(s => {
-          if (!liveSpeakers.some(l => l.id === s.id)) {
-            setDoc(doc(db, 'convention_speakers', s.id), s, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      if (!snapshot.empty) {
+        const liveSpeakers: ConventionSpeaker[] = [];
+        snapshot.forEach((docSnap) => liveSpeakers.push(docSnap.data() as ConventionSpeaker));
+        setSpeakers(liveSpeakers);
+      } else {
+        initialSpeakers.forEach(s => setDoc(doc(db, 'convention_speakers', s.id), s).catch(() => {}));
+      }
     }, (error) => console.warn('speakers sync error:', error));
 
-    // 2. Schedule sync & merge
+    // 2. Schedule sync directly from Firebase Firestore
     const unsubSchedule = onSnapshot(collection(db, 'convention_schedule'), (snapshot) => {
-      const liveSchedule: ScheduleItem[] = [];
-      snapshot.forEach((docSnap) => {
-        liveSchedule.push(docSnap.data() as ScheduleItem);
-      });
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_schedule') || '[]');
-      setSchedule(prev => {
-        const map = new Map<string, ScheduleItem>();
-        prev.forEach(s => !delIds.includes(s.id) && map.set(s.id, s));
-        liveSchedule.forEach(s => !delIds.includes(s.id) && map.set(s.id, s));
-        const merged = Array.from(map.values()).sort((a, b) => a.day !== b.day ? a.day - b.day : a.time.localeCompare(b.time));
-        merged.forEach(s => {
-          if (!liveSchedule.some(l => l.id === s.id)) {
-            setDoc(doc(db, 'convention_schedule', s.id), s, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      if (!snapshot.empty) {
+        const liveSchedule: ScheduleItem[] = [];
+        snapshot.forEach((docSnap) => liveSchedule.push(docSnap.data() as ScheduleItem));
+        liveSchedule.sort((a, b) => a.day !== b.day ? a.day - b.day : a.time.localeCompare(b.time));
+        setSchedule(liveSchedule);
+      } else {
+        initialSchedule.forEach(s => setDoc(doc(db, 'convention_schedule', s.id), s).catch(() => {}));
+      }
     }, (error) => console.warn('schedule sync error:', error));
 
-    // 3. Announcements sync & merge (Never delete existing announcements when uploading media)
+    // 3. Announcements sync directly from Firebase Firestore
     const unsubAnnouncements = onSnapshot(collection(db, 'mgj_announcements'), (snapshot) => {
-      const liveAnns: AnnouncementItem[] = [];
-      snapshot.forEach((docSnap) => {
-        liveAnns.push(docSnap.data() as AnnouncementItem);
-      });
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_announcements') || '[]');
-      setAnnouncements(prev => {
-        const map = new Map<string, AnnouncementItem>();
-        prev.forEach(a => !delIds.includes(a.id) && map.set(a.id, a));
-        liveAnns.forEach(a => !delIds.includes(a.id) && map.set(a.id, a));
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        merged.forEach(a => {
-          if (!liveAnns.some(l => l.id === a.id)) {
-            // Backup initial/unsynced announcements to Firestore
-            setDoc(doc(db, 'mgj_announcements', a.id), a, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      if (!snapshot.empty) {
+        const liveAnns: AnnouncementItem[] = [];
+        snapshot.forEach((docSnap) => liveAnns.push(docSnap.data() as AnnouncementItem));
+        liveAnns.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setAnnouncements(liveAnns);
+      } else {
+        initialAnnouncements.forEach(a => setDoc(doc(db, 'mgj_announcements', a.id), a).catch(() => {}));
+      }
     }, (error) => console.warn('announcements sync error:', error));
 
-    // 4. Notifications sync & merge
+    // 4. Notifications sync directly from Firebase Firestore
     const unsubNotifications = onSnapshot(collection(db, 'mgj_notifications'), (snapshot) => {
-      const liveNotifs: NotificationItem[] = [];
-      snapshot.forEach((docSnap) => {
-        liveNotifs.push(docSnap.data() as NotificationItem);
-      });
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_notifs') || '[]');
-      setNotifications(prev => {
-        const map = new Map<string, NotificationItem>();
-        prev.forEach(n => !delIds.includes(n.id) && map.set(n.id, n));
-        liveNotifs.forEach(n => !delIds.includes(n.id) && map.set(n.id, n));
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        merged.forEach(n => {
-          if (!liveNotifs.some(l => l.id === n.id)) {
-            setDoc(doc(db, 'mgj_notifications', n.id), n, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      if (!snapshot.empty) {
+        const liveNotifs: NotificationItem[] = [];
+        snapshot.forEach((docSnap) => liveNotifs.push(docSnap.data() as NotificationItem));
+        liveNotifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setNotifications(liveNotifs);
+      } else {
+        initialNotifications.forEach(n => setDoc(doc(db, 'mgj_notifications', n.id), n).catch(() => {}));
+      }
     }, (error) => console.warn('notifications sync error:', error));
 
-    // 5. Shop Items sync & merge
+    // 5. Shop Items sync directly from Firebase Firestore
     const unsubShopItems = onSnapshot(collection(db, 'shop_items'), (snapshot) => {
-      const liveItems: ShopItem[] = [];
-      snapshot.forEach((docSnap) => {
-        liveItems.push(docSnap.data() as ShopItem);
-      });
-      setShopItems(prev => {
-        const map = new Map<string, ShopItem>();
-        prev.forEach(i => map.set(i.id, i));
-        liveItems.forEach(i => map.set(i.id, i));
-        const merged = Array.from(map.values());
-        merged.forEach(i => {
-          if (!liveItems.some(l => l.id === i.id)) {
-            setDoc(doc(db, 'shop_items', i.id), i, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      if (!snapshot.empty) {
+        const liveItems: ShopItem[] = [];
+        snapshot.forEach((docSnap) => liveItems.push(docSnap.data() as ShopItem));
+        setShopItems(liveItems);
+      } else {
+        initialShopItems.forEach(i => setDoc(doc(db, 'shop_items', i.id), i).catch(() => {}));
+      }
     }, (error) => console.warn('shop_items sync error:', error));
 
-    // 6. Shop Orders sync & merge
+    // 6. Shop Orders sync directly from Firebase Firestore
     const unsubOrders = onSnapshot(collection(db, 'shop_orders'), (snapshot) => {
       const liveOrders: ShopOrder[] = [];
-      snapshot.forEach((docSnap) => {
-        liveOrders.push(docSnap.data() as ShopOrder);
-      });
-      setOrders(prev => {
-        const map = new Map<string, ShopOrder>();
-        prev.forEach(o => map.set(o.id, o));
-        liveOrders.forEach(o => map.set(o.id, o));
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        merged.forEach(o => {
-          if (!liveOrders.some(l => l.id === o.id)) {
-            setDoc(doc(db, 'shop_orders', o.id), o, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      snapshot.forEach((docSnap) => liveOrders.push(docSnap.data() as ShopOrder));
+      liveOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setOrders(liveOrders);
     }, (error) => console.warn('orders sync error:', error));
 
-    // 7. Donations sync & merge
+    // 7. Donations sync directly from Firebase Firestore
     const unsubDonations = onSnapshot(collection(db, 'shop_donations'), (snapshot) => {
       const liveDonations: DonationRecord[] = [];
-      snapshot.forEach((docSnap) => {
-        liveDonations.push(docSnap.data() as DonationRecord);
-      });
-      setDonations(prev => {
-        const map = new Map<string, DonationRecord>();
-        prev.forEach(d => map.set(d.id, d));
-        liveDonations.forEach(d => map.set(d.id, d));
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        merged.forEach(d => {
-          if (!liveDonations.some(l => l.id === d.id)) {
-            setDoc(doc(db, 'shop_donations', d.id), d, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      snapshot.forEach((docSnap) => liveDonations.push(docSnap.data() as DonationRecord));
+      liveDonations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setDonations(liveDonations);
     }, (error) => console.warn('donations sync error:', error));
 
-    // 8. Kzi Registrants sync & merge
+    // 8. Kzi Registrants sync directly from Firebase Firestore
     const unsubKziRegistrants = onSnapshot(collection(db, 'kzi_registrants'), (snapshot) => {
       const liveRegs: KziRegistrant[] = [];
-      snapshot.forEach((docSnap) => {
-        liveRegs.push(docSnap.data() as KziRegistrant);
-      });
-      setKziRegistrantsList(prev => {
-        const map = new Map<string, KziRegistrant>();
-        prev.forEach(r => map.set(r.id, r));
-        liveRegs.forEach(r => map.set(r.id, r));
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        merged.forEach(r => {
-          if (!liveRegs.some(l => l.id === r.id)) {
-            setDoc(doc(db, 'kzi_registrants', r.id), r, { merge: true }).catch(() => {});
-          }
-        });
-        return merged;
-      });
+      snapshot.forEach((docSnap) => liveRegs.push(docSnap.data() as KziRegistrant));
+      liveRegs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setKziRegistrantsList(liveRegs);
     }, (error) => console.warn('kzi_registrants sync error:', error));
 
     return () => {
@@ -1253,9 +1172,6 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setSpeakers(prev => [...prev, newSp]);
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_speakers') || '[]');
-      const filtered = delIds.filter(d => d !== newSp.id);
-      localStorage.setItem('mediamondemjg_deleted_speakers', JSON.stringify(filtered));
       setDoc(doc(db, 'convention_speakers', newSp.id), newSp).catch(() => {});
     } catch (e) {}
   };
@@ -1274,10 +1190,14 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setSchedule(prev => [...prev, newSc]);
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_schedule') || '[]');
-      const filtered = delIds.filter(d => d !== newSc.id);
-      localStorage.setItem('mediamondemjg_deleted_schedule', JSON.stringify(filtered));
       setDoc(doc(db, 'convention_schedule', newSc.id), newSc).catch(() => {});
+    } catch (e) {}
+  };
+
+  const updateScheduleItem = (item: ScheduleItem) => {
+    setSchedule(prev => prev.map(sc => sc.id === item.id ? item : sc));
+    try {
+      setDoc(doc(db, 'convention_schedule', item.id), item, { merge: true }).catch(() => {});
     } catch (e) {}
   };
 
@@ -1291,11 +1211,6 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteSpeaker = (id: string) => {
     setSpeakers(prev => prev.filter(s => s.id !== id));
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_speakers') || '[]');
-      if (!delIds.includes(id)) {
-        delIds.push(id);
-        localStorage.setItem('mediamondemjg_deleted_speakers', JSON.stringify(delIds));
-      }
       deleteDoc(doc(db, 'convention_speakers', id)).catch(() => {});
     } catch (e) {}
   };
@@ -1303,11 +1218,6 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteScheduleItem = (id: string) => {
     setSchedule(prev => prev.filter(sc => sc.id !== id));
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_schedule') || '[]');
-      if (!delIds.includes(id)) {
-        delIds.push(id);
-        localStorage.setItem('mediamondemjg_deleted_schedule', JSON.stringify(delIds));
-      }
       deleteDoc(doc(db, 'convention_schedule', id)).catch(() => {});
     } catch (e) {}
   };
@@ -1318,24 +1228,14 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (target) {
       setAnnouncements(prev => prev.filter(a => a.id !== id.replace('notif-', 'ann-') && a.titleFr !== target.titleFr));
       try {
-        const annDelIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_announcements') || '[]');
-        announcements.forEach(a => {
-          if (a.id === id.replace('notif-', 'ann-') || a.titleFr === target.titleFr) {
-            if (!annDelIds.includes(a.id)) {
-              annDelIds.push(a.id);
-              localStorage.setItem('mediamondemjg_deleted_announcements', JSON.stringify(annDelIds));
-            }
-            deleteDoc(doc(db, 'mgj_announcements', a.id)).catch(() => {});
+        notifications.forEach(n => {
+          if (n.id === id.replace('notif-', 'ann-') || n.titleFr === target.titleFr) {
+            deleteDoc(doc(db, 'mgj_notifications', n.id)).catch(() => {});
           }
         });
       } catch (e) {}
     }
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_notifs') || '[]');
-      if (!delIds.includes(id)) {
-        delIds.push(id);
-        localStorage.setItem('mediamondemjg_deleted_notifs', JSON.stringify(delIds));
-      }
       deleteDoc(doc(db, 'mgj_notifications', id)).catch(() => {});
     } catch (e) {}
   };
@@ -1358,46 +1258,50 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         category: titleOrObj.category || 'general',
         mediaUrl: titleOrObj.mediaUrl,
         mediaType: titleOrObj.mediaType || (titleOrObj.mediaUrl ? 'image' : 'none'),
-        authorName: titleOrObj.authorName || 'Admin MGJ',
-        authorRole: titleOrObj.authorRole || 'Administration & Secrétariat Général',
+        authorName: titleOrObj.authorName || authorNameParam || 'Admin MGJ',
+        authorRole: titleOrObj.authorRole || authorRoleParam || 'Équipe Média & Communication',
+        authorAvatar: titleOrObj.authorAvatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120',
         createdAt: new Date().toISOString(),
-        likesCount: 1,
-        pinned: titleOrObj.pinned || false
+        likesCount: 0,
+        commentsCount: 0,
+        sharesCount: 0,
+        pinned: titleOrObj.pinned || false,
+        commentsList: []
       };
-      notifCategory = newAnn.category === 'prophetic' || newAnn.category === 'urgent' ? 'direct' : newAnn.category === 'event' ? 'kzi' : 'general';
-      notifTitleFr = newAnn.titleFr;
-      notifTitleEn = newAnn.titleEn;
-      notifBodyFr = newAnn.contentFr;
-      notifBodyEn = newAnn.contentEn;
+      notifCategory = titleOrObj.category || 'general';
+      notifTitleFr = titleOrObj.titleFr || '📢 Nouvelle Annonce MGJ';
+      notifTitleEn = titleOrObj.titleEn || notifTitleFr;
+      notifBodyFr = titleOrObj.contentFr || titleOrObj.bodyFr || '';
+      notifBodyEn = titleOrObj.contentEn || titleOrObj.bodyEn || notifBodyFr;
     } else {
-      const annCategory = type === 'urgent' ? 'prophetic' : type === 'event' ? 'event' : 'general';
       newAnn = {
         id: `ann-${Date.now()}`,
-        titleFr: typeof titleOrObj === 'string' ? titleOrObj : '',
-        titleEn: titleEn || (typeof titleOrObj === 'string' ? titleOrObj : ''),
+        titleFr: titleOrObj || '',
+        titleEn: titleEn || titleOrObj || '',
         contentFr: bodyFr || '',
         contentEn: bodyEn || bodyFr || '',
-        category: annCategory,
+        category: typeof type === 'string' ? type : 'general',
         mediaUrl: mediaUrl,
         mediaType: mediaType || (mediaUrl ? 'image' : 'none'),
         authorName: authorNameParam || 'Admin MGJ',
-        authorRole: authorRoleParam || 'Administration & Secrétariat Général',
+        authorRole: authorRoleParam || 'Équipe Média & Communication',
+        authorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120',
         createdAt: new Date().toISOString(),
-        likesCount: 1,
-        pinned: type === 'urgent' || type === 'event'
+        likesCount: 0,
+        commentsCount: 0,
+        sharesCount: 0,
+        pinned: false,
+        commentsList: []
       };
-      notifCategory = type === 'urgent' ? 'direct' : type === 'event' ? 'kzi' : 'general';
-      notifTitleFr = typeof titleOrObj === 'string' ? titleOrObj : '';
-      notifTitleEn = titleEn || '';
+      notifCategory = typeof type === 'string' ? type : 'general';
+      notifTitleFr = titleOrObj || '📢 Nouvelle Annonce MGJ';
+      notifTitleEn = titleEn || notifTitleFr;
       notifBodyFr = bodyFr || '';
-      notifBodyEn = bodyEn || '';
+      notifBodyEn = bodyEn || notifBodyFr;
     }
 
     setAnnouncements(prev => [newAnn, ...prev]);
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_announcements') || '[]');
-      const filtered = delIds.filter(d => d !== newAnn.id);
-      localStorage.setItem('mediamondemjg_deleted_announcements', JSON.stringify(filtered));
       setDoc(doc(db, 'mgj_announcements', newAnn.id), newAnn, { merge: true }).catch(() => {});
     } catch (e) {}
 
@@ -1422,10 +1326,14 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setNotifications(prev => [newNotif, ...prev]);
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_notifs') || '[]');
-      const filtered = delIds.filter(d => d !== newNotif.id);
-      localStorage.setItem('mediamondemjg_deleted_notifs', JSON.stringify(filtered));
       setDoc(doc(db, 'mgj_notifications', newNotif.id), newNotif, { merge: true }).catch(() => {});
+    } catch (e) {}
+  };
+
+  const updateAnnouncement = (ann: AnnouncementItem) => {
+    setAnnouncements(prev => prev.map(a => a.id === ann.id ? ann : a));
+    try {
+      setDoc(doc(db, 'mgj_announcements', ann.id), ann, { merge: true }).catch(() => {});
     } catch (e) {}
   };
 
@@ -1435,24 +1343,14 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (target) {
       setNotifications(prev => prev.filter(n => n.id !== id.replace('ann-', 'notif-') && n.titleFr !== target.titleFr));
       try {
-        const notifDelIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_notifs') || '[]');
         notifications.forEach(n => {
           if (n.id === id.replace('ann-', 'notif-') || n.titleFr === target.titleFr) {
-            if (!notifDelIds.includes(n.id)) {
-              notifDelIds.push(n.id);
-              localStorage.setItem('mediamondemjg_deleted_notifs', JSON.stringify(notifDelIds));
-            }
             deleteDoc(doc(db, 'mgj_notifications', n.id)).catch(() => {});
           }
         });
       } catch (e) {}
     }
     try {
-      const delIds: string[] = JSON.parse(localStorage.getItem('mediamondemjg_deleted_announcements') || '[]');
-      if (!delIds.includes(id)) {
-        delIds.push(id);
-        localStorage.setItem('mediamondemjg_deleted_announcements', JSON.stringify(delIds));
-      }
       deleteDoc(doc(db, 'mgj_announcements', id)).catch(() => {});
     } catch (e) {}
   };
@@ -1553,9 +1451,11 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updateSpeaker,
       deleteSpeaker,
       addScheduleItem,
+      updateScheduleItem,
       deleteScheduleItem,
       deleteNotification,
       createAnnouncement,
+      updateAnnouncement,
       deleteAnnouncement,
       togglePinAnnouncement,
       likeAnnouncement,

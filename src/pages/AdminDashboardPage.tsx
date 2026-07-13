@@ -38,7 +38,12 @@ import {
   Package,
   Bus,
   Plane,
-  Filter
+  Filter,
+  Edit2,
+  Save,
+  CloudUpload,
+  X,
+  FileText
 } from 'lucide-react';
 
 interface AdminDashboardPageProps {
@@ -52,16 +57,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
   const { 
     shopItems, 
     addShopItem, 
+    updateShopItem,
     deleteShopItem, 
     speakers, 
     addSpeaker, 
+    updateSpeaker,
     deleteSpeaker, 
     schedule, 
     addScheduleItem, 
+    updateScheduleItem,
     deleteScheduleItem, 
     notifications,
     announcements,
     createAnnouncement,
+    updateAnnouncement,
     deleteNotification, 
     deleteAnnouncement,
     donations, 
@@ -77,6 +86,27 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [authError, setAuthError] = useState('');
+
+  // Firebase Manual Edit & Save Suite
+  const [editingItem, setEditingItem] = useState<{
+    type: 'speaker' | 'schedule' | 'announcement' | 'shop' | null;
+    data: any;
+  } | null>(null);
+  const [firebaseActionStatus, setFirebaseActionStatus] = useState<string | null>(null);
+
+  const showFirebaseToast = (msg: string) => {
+    setFirebaseActionStatus(msg);
+    setTimeout(() => setFirebaseActionStatus(null), 4500);
+  };
+
+  const handleDirectFirebaseSave = async (collectionName: string, item: any, successMsg: string) => {
+    try {
+      await setDoc(doc(db, collectionName, item.id), item, { merge: true });
+      showFirebaseToast(successMsg);
+    } catch (e: any) {
+      showFirebaseToast(`❌ Erreur Firebase: ${e.message}`);
+    }
+  };
 
   // Real User Management State fetched from Firestore without mock data
   const [memberList, setMemberList] = useState<any[]>(() => {
@@ -854,6 +884,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
         </button>
       </div>
 
+      {/* Firebase Action Toast Banner */}
+      {firebaseActionStatus && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-[var(--accent-gold)] text-slate-950 font-black text-xs sm:text-sm shadow-xl flex items-center justify-between border-2 border-white animate-bounce">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span>{firebaseActionStatus}</span>
+          </div>
+          <button onClick={() => setFirebaseActionStatus(null)} className="p-1 hover:bg-black/10 rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* TAB 1: USER & LEADER CONTROL SUITE */}
       {activeTab === 'users' && (
         <div className="space-y-6">
@@ -1463,9 +1506,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                           <span className="text-[10px] text-[var(--accent-gold)]">{s.roleFr}</span>
                         </div>
                       </div>
-                      <button onClick={() => deleteSpeaker(s.id)} className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button 
+                          type="button" 
+                          onClick={() => handleDirectFirebaseSave('convention_speakers', s, `✅ Orateur "${s.name}" synchronisé sur Firebase !`)} 
+                          className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all" 
+                          title="Enregistrer / Synchroniser sur Firebase"
+                        >
+                          <CloudUpload className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingItem({ type: 'speaker', data: { ...s } })} 
+                          className="p-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black rounded-lg transition-all" 
+                          title="Modifier les informations"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => { deleteSpeaker(s.id); showFirebaseToast(`🗑️ Orateur "${s.name}" supprimé de Firebase !`); }} 
+                          className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all" 
+                          title="Supprimer de Firebase"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1516,9 +1582,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                         <span className="px-2 py-0.5 rounded bg-[var(--accent-olive-glow)] text-[var(--accent-olive)] font-black text-[10px]">Jour {sc.day} • {sc.time}</span>
                         <h5 className="text-xs font-bold text-[var(--text-primary)] mt-1">{sc.titleFr}</h5>
                       </div>
-                      <button onClick={() => deleteScheduleItem(sc.id)} className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button 
+                          type="button" 
+                          onClick={() => handleDirectFirebaseSave('convention_schedule', sc, `✅ Session "${sc.titleFr}" synchronisée sur Firebase !`)} 
+                          className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all" 
+                          title="Enregistrer / Synchroniser sur Firebase"
+                        >
+                          <CloudUpload className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingItem({ type: 'schedule', data: { ...sc } })} 
+                          className="p-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black rounded-lg transition-all" 
+                          title="Modifier la session"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => { deleteScheduleItem(sc.id); showFirebaseToast(`🗑️ Session "${sc.titleFr}" supprimée de Firebase !`); }} 
+                          className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all" 
+                          title="Supprimer de Firebase"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1708,9 +1797,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                       <span>{new Date(a.createdAt).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                     </div>
                   </div>
-                  <button onClick={() => deleteAnnouncement(a.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl shrink-0" title="Supprimer l'annonce et sa notification">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button 
+                      type="button" 
+                      onClick={() => handleDirectFirebaseSave('mgj_announcements', a, `✅ Annonce "${a.titleFr}" synchronisée sur Firebase !`)} 
+                      className="p-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl transition-all" 
+                      title="Enregistrer / Synchroniser sur Firebase"
+                    >
+                      <CloudUpload className="w-4 h-4" />
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setEditingItem({ type: 'announcement', data: { ...a } })} 
+                      className="p-2 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black rounded-xl transition-all" 
+                      title="Modifier l'annonce"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => { deleteAnnouncement(a.id); showFirebaseToast(`🗑️ Annonce "${a.titleFr}" supprimée de Firebase !`); }} 
+                      className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all" 
+                      title="Supprimer de Firebase"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1805,9 +1917,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                         <span className="text-[10px] text-[var(--accent-gold)] font-black">{item.priceEur} € / {item.priceUsd} $ / {item.priceFc.toLocaleString('fr-FR')} FC</span>
                       </div>
                     </div>
-                    <button onClick={() => deleteShopItem(item.id)} className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button 
+                        type="button" 
+                        onClick={() => handleDirectFirebaseSave('shop_items', item, `✅ Article "${item.titleFr}" synchronisé sur Firebase !`)} 
+                        className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all" 
+                        title="Enregistrer / Synchroniser sur Firebase"
+                      >
+                        <CloudUpload className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingItem({ type: 'shop', data: { ...item } })} 
+                        className="p-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black rounded-lg transition-all" 
+                        title="Modifier l'article"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => { deleteShopItem(item.id); showFirebaseToast(`🗑️ Article "${item.titleFr}" supprimé de Firebase !`); }} 
+                        className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all" 
+                        title="Supprimer de Firebase"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1916,6 +2051,291 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Universal Edit & Save Modal (Direct Firebase Synchronizer) */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-[#111827] border-2 border-[var(--accent-gold)] rounded-3xl w-full max-w-xl p-6 sm:p-8 space-y-6 shadow-2xl relative my-8">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--accent-gold)] text-black flex items-center justify-center font-black shadow-lg">
+                  <Edit2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-amber-400">
+                    Mise à Jour Directe Firebase
+                  </span>
+                  <h3 className="text-lg font-black font-outfit text-white">
+                    Modifier {editingItem.type === 'speaker' ? "l'Orateur" : editingItem.type === 'schedule' ? "la Session" : editingItem.type === 'announcement' ? "l'Annonce" : "l'Article"}
+                  </h3>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setEditingItem(null)} 
+                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* SPEAKER EDIT FORM */}
+            {editingItem.type === 'speaker' && (
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Nom complet</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.name || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, name: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Rôle / Titre (FR)</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.roleFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, roleFr: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Biographie courte (FR)</label>
+                  <textarea 
+                    rows={3} 
+                    value={editingItem.data.bioFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, bioFr: e.target.value } })} 
+                    className="input-field py-2 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white resize-none" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Photo URL ou Upload</label>
+                  <div className="flex items-center gap-3">
+                    {editingItem.data.imageUrl && (
+                      <img src={editingItem.data.imageUrl} alt="preview" className="w-12 h-12 rounded-xl object-cover border border-amber-400" />
+                    )}
+                    <input 
+                      type="text" 
+                      value={editingItem.data.imageUrl || ''} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, imageUrl: e.target.value } })} 
+                      placeholder="https://..." 
+                      className="input-field py-2.5 px-3 text-xs rounded-xl flex-1 bg-black/40 border-white/20 text-white font-mono" 
+                    />
+                    <label className="cursor-pointer bg-amber-500 hover:bg-amber-400 text-black px-3 py-2.5 rounded-xl font-bold text-xs shrink-0 flex items-center gap-1">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setEditingItem({ ...editingItem, data: { ...editingItem.data, imageUrl: ev.target?.result as string } });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SCHEDULE EDIT FORM */}
+            {editingItem.type === 'schedule' && (
+              <div className="space-y-4 text-left">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Jour (1 à 8)</label>
+                    <select 
+                      value={editingItem.data.day || 1} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, day: Number(e.target.value) } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(d => <option key={d} value={d}>Jour {d}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Horaires</label>
+                    <input 
+                      type="text" 
+                      value={editingItem.data.time || ''} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, time: e.target.value } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Titre de la session (FR)</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.titleFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, titleFr: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Orateur en charge</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.speaker || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, speaker: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Lieu / Salle</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.location || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, location: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ANNOUNCEMENT EDIT FORM */}
+            {editingItem.type === 'announcement' && (
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Titre de l'annonce (FR)</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.titleFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, titleFr: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white font-bold" 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Catégorie</label>
+                    <select 
+                      value={editingItem.data.category || 'general'} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, category: e.target.value } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white font-bold uppercase"
+                    >
+                      <option value="urgent">URGENT</option>
+                      <option value="prophetic">PROPHÉTIQUE</option>
+                      <option value="event">ÉVÉNEMENT</option>
+                      <option value="general">GÉNÉRAL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Signataire / Auteur</label>
+                    <input 
+                      type="text" 
+                      value={editingItem.data.authorName || 'Admin MGJ'} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, authorName: e.target.value } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Contenu / Message (FR)</label>
+                  <textarea 
+                    rows={4} 
+                    value={editingItem.data.contentFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, contentFr: e.target.value } })} 
+                    className="input-field py-2 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white resize-none" 
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* SHOP ITEM EDIT FORM */}
+            {editingItem.type === 'shop' && (
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Titre de l'article (FR)</label>
+                  <input 
+                    type="text" 
+                    value={editingItem.data.titleFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, titleFr: e.target.value } })} 
+                    className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white font-bold" 
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Prix € (EUR)</label>
+                    <input 
+                      type="number" step="0.01" 
+                      value={editingItem.data.priceEur || 0} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, priceEur: Number(e.target.value) } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Prix $ (USD)</label>
+                    <input 
+                      type="number" step="0.01" 
+                      value={editingItem.data.priceUsd || 0} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, priceUsd: Number(e.target.value) } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Prix FC</label>
+                    <input 
+                      type="number" 
+                      value={editingItem.data.priceFc || 0} 
+                      onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, priceFc: Number(e.target.value) } })} 
+                      className="input-field py-2.5 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Description (FR)</label>
+                  <textarea 
+                    rows={2} 
+                    value={editingItem.data.descriptionFr || ''} 
+                    onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, descriptionFr: e.target.value } })} 
+                    className="input-field py-2 px-3 text-sm rounded-xl w-full bg-black/40 border-white/20 text-white resize-none" 
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              <button 
+                type="button" 
+                onClick={() => setEditingItem(null)} 
+                className="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-300 hover:bg-white/10 transition-all"
+              >
+                Annuler
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  const collectionMap: any = {
+                    speaker: 'convention_speakers',
+                    schedule: 'convention_schedule',
+                    announcement: 'mgj_announcements',
+                    shop: 'shop_items'
+                  };
+                  const colName = collectionMap[editingItem.type || 'speaker'];
+                  if (editingItem.type === 'speaker') updateSpeaker(editingItem.data);
+                  else if (editingItem.type === 'schedule') updateScheduleItem(editingItem.data);
+                  else if (editingItem.type === 'announcement') updateAnnouncement(editingItem.data);
+                  else if (editingItem.type === 'shop') updateShopItem(editingItem.data);
+                  
+                  handleDirectFirebaseSave(colName, editingItem.data, `✅ "${editingItem.data.titleFr || editingItem.data.name}" enregistré et synchronisé sur Firebase !`);
+                  setEditingItem(null);
+                }} 
+                className="btn-gold px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-xl hover:scale-105 transition-all"
+              >
+                <Save className="w-4 h-4" />
+                <span>Enregistrer sur Firebase</span>
+              </button>
             </div>
           </div>
         </div>

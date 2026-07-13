@@ -4,7 +4,7 @@ export interface NotificationItem {
   titleEn: string;
   messageFr: string;
   messageEn: string;
-  category: 'direct' | 'kzi' | 'shop' | 'general';
+  category: 'direct' | 'kzi' | 'shop' | 'general' | string;
   urgent: boolean;
   read: boolean;
   createdAt: string;
@@ -103,15 +103,18 @@ export interface AnnouncementItem {
   titleEn: string;
   contentFr: string;
   contentEn: string;
-  category: 'prophetic' | 'event' | 'general' | 'urgent';
+  category: 'prophetic' | 'event' | 'general' | 'urgent' | string;
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'audio' | 'none';
   authorName: string;
   authorRole: string;
+  authorAvatar?: string;
   createdAt: string;
   likesCount: number;
+  commentsCount?: number;
   sharesCount?: number;
   pinned?: boolean;
+  commentsList?: AnnouncementComment[];
   comments?: AnnouncementComment[];
 }
 
