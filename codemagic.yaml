@@ -21,12 +21,15 @@ workflows:
       - name: Set up keychain for code signing
         script: |
           keychain initialize
+      - name: Add existing distribution certificates to keychain
+        script: |
+          keychain add-certificates --continue-on-error
       - name: Fetch Apple distribution certificates and profiles
         script: |
           app-store-connect fetch-signing-files "com.mediamgj.monde" --type IOS_APP_STORE --create
-      - name: Add distribution certificates to keychain
+      - name: Add downloaded certificates to keychain
         script: |
-          keychain add-certificates
+          keychain add-certificates --continue-on-error
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles --project "$CM_BUILD_DIR/ios/App/App.xcodeproj"
