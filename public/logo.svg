@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Outer glowing background circle for app icon -->
+  <rect width="512" height="512" rx="128" fill="url(#bg_gradient)" />
+  <defs>
+    <linearGradient id="bg_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a3f11" />
+      <stop offset="50%" stop-color="#4a6b22" />
+      <stop offset="100%" stop-color="#1b2a0b" />
+    </linearGradient>
+    <linearGradient id="play_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9900" />
+      <stop offset="100%" stop-color="#e65c00" />
+    </linearGradient>
+  </defs>
+  <!-- Two Green Sprout Leaves on top -->
+  <path d="M256 120 C230 70, 180 60, 170 85 C160 110, 200 135, 245 135 Z" fill="#789d34" />
+  <path d="M256 120 C282 70, 332 60, 342 85 C352 110, 312 135, 267 135 Z" fill="#5f8025" />
+  <!-- TV Frame Outer Green Outline -->
+  <rect x="96" y="140" width="320" height="230" rx="60" stroke="#789d34" stroke-width="24" fill="#ffffff" />
+  <!-- TV Screen Inner Glow / Light background -->
+  <rect x="110" y="154" width="292" height="202" rx="48" fill="#f8fafc" />
+  <!-- Orange Play Button Triangle in Center -->
+  <polygon points="220,210 320,255 220,300" fill="url(#play_gradient)" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" />
+  <!-- Text MGJ below -->
+  <text x="256" y="420" font-family="'Outfit', sans-serif" font-weight="900" font-size="46" fill="#ffffff" text-anchor="middle" letter-spacing="2">MGJ MONDE</text>
+</svg>

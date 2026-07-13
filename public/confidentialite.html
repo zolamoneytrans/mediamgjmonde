@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Politique de Confidentialité — MGJ Monde</title>
+  <meta name="description" content="Politique de confidentialité et protection des données personnelles pour l'application MGJ Monde (Ministères Génération Joël).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a10;
+      --bg-secondary: #12121f;
+      --bg-card: rgba(25, 25, 45, 0.6);
+      --accent-gold: #f59e0b;
+      --accent-gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+      --accent-purple: #8b5cf6;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background Ambient Glows */
+    .glow-bg {
+      position: fixed;
+      top: -150px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 70%);
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-bg-2 {
+      position: fixed;
+      bottom: -150px;
+      left: -100px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%);
+      filter: blur(90px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 16, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+    }
+
+    .header-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--accent-gold-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #000;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    }
+
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-sub {
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      display: block;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--accent-gold);
+      transform: translateY(-1px);
+    }
+
+    main {
+      flex: 1;
+      max-width: 960px;
+      width: 100%;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--accent-gold);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .update-date {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2.25rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--glass-shadow);
+      transition: border-color 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 24px;
+      background: var(--accent-gold-gradient);
+      border-radius: 4px;
+    }
+
+    p, li {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    li {
+      position: relative;
+      padding-left: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent-gold);
+      font-weight: 800;
+    }
+
+    .highlight-box {
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 4px solid var(--accent-purple);
+      padding: 1.25rem 1.5rem;
+      border-radius: 0 12px 12px 0;
+      margin: 1.5rem 0;
+    }
+
+    .highlight-box p {
+      margin-bottom: 0;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .contact-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      text-align: center;
+      padding: 2.5rem;
+    }
+
+    .contact-email {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 2rem;
+      background: var(--accent-gold-gradient);
+      color: #000;
+      font-weight: 700;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .contact-email:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      background: rgba(10, 10, 16, 0.9);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .footer-text {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 2rem; }
+      .card { padding: 1.5rem; }
+      header { padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-bg"></div>
+  <div class="glow-bg-2"></div>
+
+  <header>
+    <div class="header-container">
+      <a href="/" class="logo">
+        <div class="logo-icon">M</div>
+        <div>
+          <span class="logo-text">MGJ Monde</span>
+          <span class="logo-sub">Génération Joël</span>
+        </div>
+      </a>
+      <a href="/" class="back-btn">
+        <span>← Retour à l'application</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-section">
+      <span class="badge">Conformité RGPD & Google Play</span>
+      <h1>Politique de Confidentialité</h1>
+      <p class="update-date">Dernière mise à jour : 9 Juillet 2026</p>
+    </section>
+
+    <div class="card">
+      <h2>1. Introduction et Engagement</h2>
+      <p>Bienvenue sur l'application <strong>MGJ Monde</strong> (Ministères Génération Joël), développée et éditée par <strong>Swazi Appli Lab sarl</strong>.</p>
+      <p>La protection de votre vie privée et de vos données personnelles est une priorité absolue pour notre ministère et notre équipe technique. Cette politique de confidentialité détaille de manière transparente quelles informations nous collectons, comment nous les utilisons, ainsi que les droits dont vous disposez en conformité avec les réglementations sur la protection des données (notamment le RGPD et les directives de Google Play).</p>
+    </div>
+
+    <div class="card">
+      <h2>2. Données Collectées par l'Application</h2>
+      <p>Dans le cadre de votre utilisation de l'application MGJ Monde (diffusions en direct, inscriptions aux conventions KZI, boutique et dons), nous pouvons collecter les catégories d'informations suivantes :</p>
+      <ul>
+        <li><strong>Informations d'authentification et d'identité :</strong> Nom, prénom, adresse e-mail, photo de profil et identifiant unique de compte lorsque vous vous connectez via Firebase Authentication (adresse e-mail/mot de passe ou connexion Google/Apple).</li>
+        <li><strong>Données relatives aux transactions et aux dons :</strong> Historique de vos contributions, dons ou commandes effectués dans l'application. <em>Note importante : nous ne stockons jamais vos numéros de carte bancaire ou données financières sensibles. Les transactions sont gérées de manière sécurisée par des prestataires de paiement certifiés PCI-DSS.</em></li>
+        <li><strong>Données d'utilisation et techniques :</strong> Type d'appareil (smartphone Android/iOS), version du système d'exploitation, adresse IP anonymisée et interactions avec les diffusions en direct ou les vidéos, à des fins de diagnostic de performance et d'amélioration du streaming.</li>
+        <li><strong>Identifiants de notifications :</strong> Jeton de notification push (Push Token) pour vous alerter du début des cultes en direct, des annonces importantes de la Convention KZI ou des mises à jour du ministère.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>3. Utilisation et Finalité des Données</h2>
+      <p>Les informations que nous collectons sont exclusivement utilisées pour assurer le bon fonctionnement et l'enrichissement spirituel et communautaire offert par l'application :</p>
+      <ul>
+        <li>Gérer et sécuriser votre compte utilisateur personnalisé.</li>
+        <li>Vous permettre d'accéder aux directs de MGJ Monde, de commenter et d'interagir avec la communauté.</li>
+        <li>Traiter vos inscriptions aux conventions, événements et commandes sur la boutique en ligne.</li>
+        <li>Vous envoyer des notifications en temps réel (que vous pouvez désactiver à tout moment depuis les paramètres de votre appareil).</li>
+        <li>Assurer la sécurité technique, prévenir les fraudes et optimiser l'expérience utilisateur.</li>
+      </ul>
+      <div class="highlight-box">
+        <p>🔒 <strong>Aucune revente de données :</strong> Swazi Appli Lab sarl et MGJ Monde s'engagent formellement à ne jamais revendre, louer ou échanger vos données personnelles avec des tiers à des fins publicitaires ou commerciales.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Stockage et Sécurité des Données</h2>
+      <p>Vos données sont hébergées et sécurisées sur l'infrastructure cloud haute sécurité de <strong>Google Firebase / Google Cloud Platform</strong>.</p>
+      <p>Toutes les communications entre votre application et nos serveurs sont chiffrées de bout en bout via le protocole sécurisé <strong>HTTPS / TLS</strong>. Nous appliquons des règles de sécurité strictes pour garantir que seuls les utilisateurs autorisés et l'administration du ministère puissent accéder aux informations qui les concernent.</p>
+    </div>
+
+    <div class="card">
+      <h2>5. Droits de l'Utilisateur et Suppression des Données</h2>
+      <p>Conformément aux directives strictes du Google Play Store et au Règlement Général sur la Protection des Données (RGPD), vous conservez le contrôle total sur vos informations :</p>
+      <ul>
+        <li><strong>Droit d'accès et de rectification :</strong> Vous pouvez consulter et modifier vos informations personnelles directement depuis la section "Mon Profil" de l'application.</li>
+        <li><strong>Droit à l'oubli et suppression du compte :</strong> Vous avez le droit de demander la suppression complète et définitive de votre compte utilisateur et de toutes les données associées.</li>
+      </ul>
+      <p><strong>Comment supprimer vos données ?</strong><br>
+      Vous pouvez demander la suppression immédiate de votre compte soit via l'option dédiée dans les paramètres de votre profil dans l'application, soit en envoyant une demande écrite à notre service support.</p>
+    </div>
+
+    <div class="card">
+      <h2>6. Services Tiers Utilisés</h2>
+      <p>Pour fournir un service stable et moderne, l'application intègre certains modules de confiance :</p>
+      <ul>
+        <li><strong>Google Firebase (Authentication, Firestore, Cloud Messaging) :</strong> Pour l'authentification sécurisée, la base de données et l'envoi de notifications push. (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: var(--accent-gold);">Politique de confidentialité de Google</a>)</li>
+        <li><strong>Capacitor (Ionic) :</strong> Moteur natif permettant le fonctionnement optimal de l'application sur Android et iOS.</li>
+      </ul>
+    </div>
+
+    <div class="card contact-card">
+      <h2>7. Nous Contacter</h2>
+      <p>Si vous avez des questions concernant cette politique de confidentialité, ou si vous souhaitez exercer vos droits sur vos données personnelles, vous pouvez contacter notre équipe à tout moment :</p>
+      <p style="margin-top: 1.5rem; font-weight: 600; color: #fff;">Swazi Appli Lab sarl — Support MGJ Monde</p>
+      <a href="mailto:contact@swaziapplilab.com" class="contact-email">contact@swaziapplilab.com</a>
+    </div>
+  </main>
+
+  <footer>
+    <p class="footer-text">© Swazi Appli Lab sarl 2026 • Ministères Génération Joël (MGJ Monde) • Joël 2:28</p>
+  </footer>
+
+</body>
+</html>
