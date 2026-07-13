@@ -6,7 +6,7 @@ workflows:
     integrations:
       app_store_connect: app_store3
     environment:
-      node: v20.15.0
+      node: v22.13.0
       xcode: latest
       cocoapods: default
     scripts:
