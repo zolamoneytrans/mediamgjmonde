@@ -34,14 +34,18 @@ workflows:
         script: |
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
 
-      - name: Diagnostic — print all existing certificates returned by Apple API right now
+      - name: Step 1 — Create distribution certificate explicitly (generates + saves private key)
         script: |
-          echo "=== ALL DISTRIBUTION CERTIFICATES IN APPLE DEVELOPER PORTAL ==="
-          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty || true
-          echo "=== ALL CERTIFICATES OF ANY TYPE ==="
-          app-store-connect list-certificates --pretty || true
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save
 
-      - name: Generate Apple Certificate (.p12) & Provisioning Profile (.mobileprovision) atomically
+      - name: Step 2 — Verify certificate and private key were saved
+        script: |
+          echo "=== Certificates now known to Codemagic ==="
+          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty
+          echo "=== Keychain identities ==="
+          security find-identity -v -p codesigning || true
+
+      - name: Step 3 — Create provisioning profile using the certificate from Step 1
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
