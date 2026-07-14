@@ -38,6 +38,10 @@ workflows:
       - name: Ensure App ID exists on Apple Developer Portal automatically
         script: |
           app-store-connect create-bundle-id --id "com.mediamgj.monde" --name "Media MGJ Monde" --type APP || true
+      - name: Generate fresh iOS Distribution Certificate & Private Key (.p12) via API
+        script: |
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save || true
+          keychain add-certificates || true
       - name: Automatically fetch and create missing Certificates & Provisioning Profiles
         script: |
           app-store-connect fetch-signing-files "com.mediamgj.monde" \
