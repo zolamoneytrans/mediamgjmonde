@@ -10,9 +10,6 @@ workflows:
         BUNDLE_ID: "com.mediamgj.monde"
         XCODE_PROJECT: "$CM_BUILD_DIR/ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.mediamgj.monde
       node: v22.13.0
       xcode: latest
     scripts:
@@ -30,9 +27,33 @@ workflows:
           cd "$CM_BUILD_DIR/ios/App"
           agvtool new-version -all $(($BUILD_NUMBER + 20))
 
+      - name: Set up keychain for code signing
+        script: keychain initialize
+
+      - name: Ensure App ID exists on Apple Developer Portal
+        script: |
+          app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
+
+      - name: Generate Apple Distribution Certificate & Provisioning Profile from scratch
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create \
+            --create-certificate \
+            --verbose
+
+      - name: Add downloaded certificates & profiles to keychain and authorize codesign
+        script: |
+          keychain add-certificates
+          security set-key-partition-list -S apple-tool,apple,codesign -s -k "" login.keychain-db || true
+          echo "=== Provisioning Profiles Downloaded ==="
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles" || true
+          echo "=== Valid Code Signing Identities ==="
+          security find-identity -v -p codesigning || true
+
       - name: Set up code signing settings on Xcode project
         script: |
-          xcode-project use-profiles
+          xcode-project use-profiles --project "$XCODE_PROJECT" --verbose
 
       - name: Build signed iOS IPA for App Store Connect
         script: |
