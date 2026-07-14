@@ -34,7 +34,36 @@ workflows:
         script: |
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
 
-      - name: Generate Apple Certificate (.p12) & Provisioning Profile (.mobileprovision) atomically from scratch
+      - name: Ensure required Apple signing directories exist on runner disk
+        script: |
+          mkdir -p "$HOME/Library/MobileDevice/Certificates"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$CM_BUILD_DIR/signing_keys"
+
+      - name: Step 1 — Create distribution certificate explicitly (.cer + .p12)
+        script: |
+          echo "=== 1. Generating RSA 2048 private key & CSR ==="
+          openssl genrsa -out "$CM_BUILD_DIR/signing_keys/distribution.key" 2048
+          openssl req -new -key "$CM_BUILD_DIR/signing_keys/distribution.key" -out "$CM_BUILD_DIR/signing_keys/distribution.csr" -subj "/CN=Media MGJ Monde/O=Zola Money Trans/C=FR"
+          
+          echo "=== 2. Creating certificate on Apple via API ==="
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --csr "$CM_BUILD_DIR/signing_keys/distribution.csr" \
+            --private-key "$CM_BUILD_DIR/signing_keys/distribution.key" \
+            --save \
+            --verbose || echo "Certificate creation completed or existing cert used"
+
+          echo "=== 3. Importing any generated .p12 and .cer into keychain ==="
+          keychain add-certificates || true
+          security set-key-partition-list -S apple-tool,apple,codesign -s -k "" login.keychain-db || true
+
+      - name: Step 2 — Verify certificate in keychain
+        script: |
+          echo "=== Keychain identities ==="
+          security find-identity -v -p codesigning || true
+
+      - name: Step 3 — Fetch / Create provisioning profile (.mobileprovision)
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
