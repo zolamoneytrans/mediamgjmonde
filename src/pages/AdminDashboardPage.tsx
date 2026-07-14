@@ -43,8 +43,18 @@ import {
   Save,
   CloudUpload,
   X,
-  FileText
+  FileText,
+  Building2,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Laptop,
+  Wifi,
+  WifiOff,
+  HardDrive
 } from 'lucide-react';
+import { MgjAntenna, MgjSector } from '../types/models';
 
 interface AdminDashboardPageProps {
   onNavigateToPublic?: () => void;
@@ -79,13 +89,59 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
     updateKziWelcomeInfo,
     kziRegistrantsList,
     deleteKziRegistrant,
-    updateKziRegistrantStatus
+    updateKziRegistrantStatus,
+    antennas,
+    saveAntenna,
+    deleteAntenna,
+    resetAntennasToDefault
   } = useAppData();
 
-  const [activeTab, setActiveTab] = useState<'users' | 'kzi' | 'announcements' | 'shop' | 'finances'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'kzi' | 'antennas' | 'announcements' | 'shop' | 'finances'>('users');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [authError, setAuthError] = useState('');
+
+  // Antennas & Sectors management state
+  const [antennaSearchQuery, setAntennaSearchQuery] = useState('');
+  const [editingAntenna, setEditingAntenna] = useState<MgjAntenna | null>(null);
+  const [isAddingAntenna, setIsAddingAntenna] = useState(false);
+  const [editingSector, setEditingSector] = useState<MgjSector | null>(null);
+  const [isAddingSector, setIsAddingSector] = useState(false);
+
+  // Windows Desktop Software & Offline Sync State
+  const [canInstallPwa, setCanInstallPwa] = useState(!!(window as any).deferredPrompt);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    const handleReady = () => setCanInstallPwa(true);
+    const handleInstalled = () => setCanInstallPwa(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('pwa_install_ready', handleReady);
+    window.addEventListener('pwa_app_installed', handleInstalled);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('pwa_install_ready', handleReady);
+      window.removeEventListener('pwa_app_installed', handleInstalled);
+    };
+  }, []);
+
+  const handleInstallPwaClick = async () => {
+    const promptEvent = (window as any).deferredPrompt;
+    if (!promptEvent) return;
+    promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
+    (window as any).deferredPrompt = null;
+    setCanInstallPwa(false);
+    if (outcome === 'accepted') {
+      showFirebaseToast("✅ Application MGJ Monde installée avec succès sur Windows !");
+    }
+  };
 
   // Firebase Manual Edit & Save Suite
   const [editingItem, setEditingItem] = useState<{
@@ -793,7 +849,18 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {canInstallPwa && (
+              <button
+                onClick={handleInstallPwaClick}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[var(--accent-gold)] to-amber-500 text-slate-950 font-black text-xs border border-amber-400/50 shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                title="Installer l'application native sur le bureau Windows (PC)"
+              >
+                <Laptop className="w-4 h-4 text-black stroke-[2.5]" />
+                <span>💻 Installer l'Application</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 if (onNavigateToPublic) onNavigateToPublic();
@@ -809,6 +876,61 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
             </button>
           </div>
         </div>
+
+      {/* WINDOWS DESKTOP SOFTWARE & OFFLINE PERSISTENCE BANNER */}
+      <div className={`p-5 sm:p-6 rounded-3xl border-2 transition-all shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 ${
+        isOnline 
+          ? 'bg-gradient-to-r from-[#101f0d] via-black/80 to-[#0e1a1e] border-emerald-500/40' 
+          : 'bg-gradient-to-r from-amber-950/80 via-black/90 to-red-950/80 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.25)] animate-pulse'
+      }`}>
+        <div className="flex items-start sm:items-center gap-4">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg font-black text-lg ${
+            isOnline ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500 text-slate-950'
+          }`}>
+            {isOnline ? <Wifi className="w-6 h-6 animate-bounce" /> : <WifiOff className="w-6 h-6 animate-spin-slow" />}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                isOnline ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500 text-slate-950'
+              }`}>
+                {isOnline ? '🟢 Connecté à Internet - Synchronisation en direct' : '🟠 Mode Hors-Ligne Actif (Sans Internet)'}
+              </span>
+              <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
+                <HardDrive className="w-3.5 h-3.5 text-[var(--accent-gold)]" />
+                <span>Persistence Locale IndexedDB activée</span>
+              </span>
+            </div>
+            <h4 className="text-base sm:text-lg font-black font-outfit text-white mt-1">
+              {isOnline 
+                ? 'Application Administrateur & Fonctionnement Hors-Ligne (PWA Windows)' 
+                : 'Vous êtes actuellement hors-connexion. Vos modifications sont sauvegardées en sécurité !'}
+            </h4>
+            <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
+              {isOnline
+                ? "Installez l'application en un clic sur votre ordinateur Windows pour un accès direct depuis votre Bureau. Si la connexion est coupée, vos modifications (Antennes, Bergers, Annonces) sont enregistrées localement et synchronisées sur Firebase dès le retour d'Internet !"
+                : "Toutes vos ajouts, modifications et suppressions sont mémorisés instantanément sur votre PC. Dès que votre connexion Internet sera rétablie, Firebase enverra automatiquement vos mises à jour vers le cloud !"}
+            </p>
+            {!canInstallPwa && (
+              <p className="text-xs font-bold text-amber-300/90 mt-2 flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit">
+                <span>💡 Ouvrez ce site dans Chrome ou Edge sur Windows pour installer l'application (ou l'application est déjà installée sur votre Bureau).</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 self-end lg:self-center shrink-0">
+          {canInstallPwa && (
+            <button
+              onClick={handleInstallPwaClick}
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[var(--accent-gold)] to-amber-500 text-slate-950 font-black text-xs sm:text-sm hover:brightness-110 active:scale-95 transition-all shadow-xl flex items-center gap-2.5"
+            >
+              <Laptop className="w-5 h-5 stroke-[2.5]" />
+              <span>💻 Installer l'Application</span>
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Global Success Feedback Banner */}
       {successMsg && (
@@ -845,6 +967,18 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
         >
           <Calendar className="w-4 h-4 text-amber-400" />
           <span>Contrôle & Suivi de la Convention Kzi 2026 ({kziRegistrantsList?.length || 0})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('antennas')}
+          className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'antennas'
+              ? 'bg-amber-600 text-white shadow-lg'
+              : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-glass hover:text-[var(--text-primary)]'
+          }`}
+        >
+          <Building2 className="w-4 h-4 text-amber-400" />
+          <span>Antennes & Secteurs MGJ ({antennas.length})</span>
         </button>
 
         <button
@@ -1618,7 +1752,468 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
         </div>
       )}
 
-      {/* TAB 3: ANNOUNCEMENTS & LIVE BROADCAST TRIGGER SUITE */}
+      {/* TAB 3: ANTENNES & SECTEURS MANAGEMENT SUITE */}
+      {activeTab === 'antennas' && (
+        <div className="space-y-6">
+          <div className="glass-panel p-6 rounded-3xl border-2 border-[var(--accent-gold)] bg-gradient-to-r from-[var(--bg-secondary)] via-black/80 to-[var(--bg-tertiary)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-[var(--accent-gold)] text-xs font-black uppercase tracking-wider">
+                <Building2 className="w-4 h-4" />
+                <span>Gestionnaire International & Connectivité de la Mission</span>
+              </div>
+              <h4 className="text-xl sm:text-2xl font-black font-outfit text-white">
+                Répertoire des Antennes & Secteurs MGJ ({antennas.length})
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Mettez à jour en temps réel les informations des présidents d'antennes, bergers, adresses et horaires. Toutes les modifications sont enregistrées instantanément sur Firebase.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button
+                onClick={() => {
+                  if (window.confirm('Voulez-vous vraiment réinitialiser tout le répertoire avec les 26 Antennes et 83 Secteurs par défaut (selon le document officiel PDF) ?')) {
+                    resetAntennasToDefault();
+                    setSuccessMsg('Répertoire des Antennes réinitialisé par défaut avec succès sur Firebase !');
+                  }
+                }}
+                className="px-4 py-2.5 rounded-2xl bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-black font-bold text-xs flex items-center gap-2 transition-all border border-red-500/30"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Réinitialiser par Défaut</span>
+              </button>
+              <button
+                onClick={() => {
+                  setEditingAntenna({
+                    id: `ant-${Date.now()}`,
+                    number: String(antennas.length + 1),
+                    name: '',
+                    country: 'RDC',
+                    presidentName: '',
+                    presidentContact: '',
+                    sectors: []
+                  });
+                  setIsAddingAntenna(true);
+                }}
+                className="px-5 py-3 rounded-2xl bg-[var(--accent-gold)] text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-xl hover:bg-amber-400 active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Nouvelle Antenne</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search bar inside Antennas Tab */}
+          <div className="relative">
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={antennaSearchQuery}
+              onChange={(e) => setAntennaSearchQuery(e.target.value)}
+              placeholder="Rechercher une antenne, un pays, un président ou un secteur..."
+              className="w-full bg-black/40 border border-glass rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[var(--accent-gold)] transition-all"
+            />
+            {antennaSearchQuery && (
+              <button
+                onClick={() => setAntennaSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-white"
+              >
+                Effacer
+              </button>
+            )}
+          </div>
+
+          {/* Antennas List Table/Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {antennas
+              .filter(a => {
+                if (!antennaSearchQuery.trim()) return true;
+                const q = antennaSearchQuery.toLowerCase();
+                return (a.name || '').toLowerCase().includes(q) ||
+                  (a.country || '').toLowerCase().includes(q) ||
+                  (a.presidentName || '').toLowerCase().includes(q) ||
+                  (a.presidentContact || '').toLowerCase().includes(q) ||
+                  (a.sectors || []).some(s => (s.name || '').toLowerCase().includes(q) || (s.leaders || '').toLowerCase().includes(q));
+              })
+              .map((a) => (
+                <div
+                  key={a.id}
+                  className="glass-card p-6 rounded-3xl border border-glass bg-gradient-to-br from-[var(--bg-secondary)] via-black/60 to-[var(--bg-tertiary)] flex flex-col justify-between space-y-4 shadow-lg hover:border-[var(--accent-gold)]/50 transition-all"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-10 h-10 rounded-xl bg-[var(--accent-gold)] text-slate-950 font-black flex items-center justify-center text-base">
+                          {a.number || 'I'}
+                        </span>
+                        <div>
+                          <h5 className="text-lg font-black font-outfit text-white leading-tight">
+                            {a.name}
+                          </h5>
+                          <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-white/10 text-amber-300">
+                            {a.country}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingAntenna(JSON.parse(JSON.stringify(a)));
+                            setIsAddingAntenna(false);
+                          }}
+                          className="p-2 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                          title="Modifier Antenne et Secteurs"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Supprimer définitivement l'antenne ${a.name} (${a.sectors?.length || 0} secteurs inclus) ?`)) {
+                              deleteAntenna(a.id);
+                              setSuccessMsg(`Antenne ${a.name} supprimée de Firebase.`);
+                            }
+                          }}
+                          className="p-2 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all"
+                          title="Supprimer Antenne"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="text-xs space-y-1.5 text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <span className="text-amber-400 font-bold">👑 Président :</span>
+                        <span className="font-semibold text-white">{a.presidentName || 'Non spécifié'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 font-mono">📞 Contact :</span>
+                        <span className="font-mono text-slate-200">{a.presidentContact || 'Non spécifié'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold">
+                    <span className="px-3 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                      🏢 {a.sectors?.length || 0} Secteurs enregistrés
+                    </span>
+                    <button
+                      onClick={() => {
+                        setEditingAntenna(JSON.parse(JSON.stringify(a)));
+                        setIsAddingAntenna(false);
+                      }}
+                      className="text-[var(--accent-gold)] hover:underline flex items-center gap-1"
+                    >
+                      <span>Gérer les Secteurs</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* EDIT/ADD ANTENNA MODAL */}
+          {editingAntenna && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-[#121c0e] border-2 border-[var(--accent-gold)] rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-white/15 pb-4">
+                  <h3 className="text-2xl font-black font-outfit text-white flex items-center gap-2">
+                    <Building2 className="w-6 h-6 text-[var(--accent-gold)]" />
+                    <span>{isAddingAntenna ? 'Créer une Nouvelle Antenne' : `Modifier l'Antenne ${editingAntenna.name}`}</span>
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setEditingAntenna(null);
+                      setEditingSector(null);
+                    }}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Main Antenna Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Numéro (ex: I, II, III)</label>
+                    <input
+                      type="text"
+                      value={editingAntenna.number}
+                      onChange={(e) => setEditingAntenna({ ...editingAntenna, number: e.target.value })}
+                      className="w-full bg-black/50 border border-glass rounded-xl p-3 text-sm text-white focus:border-[var(--accent-gold)]"
+                      placeholder="I"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Nom de la Ville / Antenne *</label>
+                    <input
+                      type="text"
+                      value={editingAntenna.name}
+                      onChange={(e) => setEditingAntenna({ ...editingAntenna, name: e.target.value })}
+                      className="w-full bg-black/50 border border-glass rounded-xl p-3 text-sm text-white focus:border-[var(--accent-gold)] font-bold"
+                      placeholder="LUBUMBASHI"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Pays *</label>
+                    <input
+                      type="text"
+                      value={editingAntenna.country}
+                      onChange={(e) => setEditingAntenna({ ...editingAntenna, country: e.target.value })}
+                      className="w-full bg-black/50 border border-glass rounded-xl p-3 text-sm text-white focus:border-[var(--accent-gold)] uppercase font-bold"
+                      placeholder="RDC"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Nom du Président d'Antenne</label>
+                    <input
+                      type="text"
+                      value={editingAntenna.presidentName}
+                      onChange={(e) => setEditingAntenna({ ...editingAntenna, presidentName: e.target.value })}
+                      className="w-full bg-black/50 border border-glass rounded-xl p-3 text-sm text-white focus:border-[var(--accent-gold)] font-medium"
+                      placeholder="PASTEUR JOHN KALALA"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Numéro(s) de Contact</label>
+                    <input
+                      type="text"
+                      value={editingAntenna.presidentContact}
+                      onChange={(e) => setEditingAntenna({ ...editingAntenna, presidentContact: e.target.value })}
+                      className="w-full bg-black/50 border border-glass rounded-xl p-3 text-sm text-white focus:border-[var(--accent-gold)] font-mono"
+                      placeholder="099 701 82 15"
+                    />
+                  </div>
+                </div>
+
+                {/* SECTORS / CELLULES SUITE INSIDE MODAL */}
+                <div className="border-t border-white/15 pt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-lg font-black text-[var(--accent-gold)] flex items-center gap-2">
+                        <span>🏢 Secteurs & Cellules Rattachés ({editingAntenna.sectors?.length || 0})</span>
+                      </h4>
+                      <p className="text-xs text-slate-400">Ajoutez, modifiez ou supprimez les secteurs dans cette antenne.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingSector({
+                          id: `sec-${Date.now()}`,
+                          name: '',
+                          leaders: '',
+                          contacts: '',
+                          address: '',
+                          days: 'LUNDI ET JEUDI',
+                          hours: '15H A 19H'
+                        });
+                        setIsAddingSector(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black text-xs flex items-center gap-1.5 shadow-lg hover:bg-amber-400"
+                    >
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                      <span>Ajouter Secteur</span>
+                    </button>
+                  </div>
+
+                  {/* Inline Form for Sector Add/Edit */}
+                  {editingSector && (
+                    <div className="p-5 rounded-2xl bg-black/60 border-2 border-[var(--accent-gold)] space-y-4 animate-fadeIn">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-black text-amber-400">
+                          {isAddingSector ? '➕ Nouveau Secteur / Cellule' : `✏️ Modifier le Secteur ${editingSector.name}`}
+                        </span>
+                        <button type="button" onClick={() => setEditingSector(null)} className="text-xs text-slate-400 hover:text-white">✕ Annuler</button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Nom du Secteur *</label>
+                          <input
+                            type="text"
+                            value={editingSector.name}
+                            onChange={(e) => setEditingSector({ ...editingSector, name: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white uppercase font-bold"
+                            placeholder="ex: BEL AIR"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Bergers / Pasteurs</label>
+                          <input
+                            type="text"
+                            value={editingSector.leaders}
+                            onChange={(e) => setEditingSector({ ...editingSector, leaders: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white"
+                            placeholder="ex: PASTEUR MICHEL BADI"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Numéro(s) de Téléphone</label>
+                          <input
+                            type="text"
+                            value={editingSector.contacts}
+                            onChange={(e) => setEditingSector({ ...editingSector, contacts: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white font-mono"
+                            placeholder="ex: 085 094 17 90"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-1">
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Jours de Culte</label>
+                          <input
+                            type="text"
+                            value={editingSector.days}
+                            onChange={(e) => setEditingSector({ ...editingSector, days: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white"
+                            placeholder="LUNDI ET JEUDI"
+                          />
+                        </div>
+                        <div className="sm:col-span-1">
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Heures (Horaires)</label>
+                          <input
+                            type="text"
+                            value={editingSector.hours}
+                            onChange={(e) => setEditingSector({ ...editingSector, hours: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white"
+                            placeholder="15H A 19H"
+                          />
+                        </div>
+                        <div className="sm:col-span-1">
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">Adresse Exacte</label>
+                          <input
+                            type="text"
+                            value={editingSector.address}
+                            onChange={(e) => setEditingSector({ ...editingSector, address: e.target.value })}
+                            className="w-full bg-black border border-glass rounded-xl p-2.5 text-xs text-white"
+                            placeholder="20, AVENUE DES PLAINES..."
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSector(null)}
+                          className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 text-xs font-bold"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!editingSector.name.trim()) return alert('Veuillez entrer le nom du secteur.');
+                            const currentSectors = editingAntenna.sectors || [];
+                            if (isAddingSector) {
+                              setEditingAntenna({
+                                ...editingAntenna,
+                                sectors: [...currentSectors, editingSector]
+                              });
+                            } else {
+                              setEditingAntenna({
+                                ...editingAntenna,
+                                sectors: currentSectors.map(s => s.id === editingSector.id ? editingSector : s)
+                              });
+                            }
+                            setEditingSector(null);
+                          }}
+                          className="px-5 py-2 rounded-xl bg-emerald-500 text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-md"
+                        >
+                          ✓ {isAddingSector ? 'Ajouter ce Secteur' : 'Mettre à jour le Secteur'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of Sectors inside editingAntenna */}
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    {(editingAntenna.sectors || []).length === 0 ? (
+                      <p className="text-xs text-slate-400 italic text-center py-6 bg-black/30 rounded-2xl">
+                        Aucun secteur rattaché à cette antenne. Cliquez sur "Ajouter Secteur" ci-dessus.
+                      </p>
+                    ) : (
+                      (editingAntenna.sectors || []).map((sec) => (
+                        <div
+                          key={sec.id}
+                          className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3 hover:border-white/30 transition-all"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-white text-sm">{sec.name}</span>
+                              <span className="text-[11px] text-amber-300 font-semibold">{sec.leaders}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-300 font-mono mt-0.5">📞 {sec.contacts || 'Aucun contact'} • 📍 {sec.address || 'Adresse non spécifiée'}</p>
+                            <p className="text-[10px] text-sky-300 font-medium">⏰ {sec.days} ({sec.hours})</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingSector(sec);
+                                setIsAddingSector(false);
+                              }}
+                              className="p-2 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                              title="Modifier Secteur"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingAntenna({
+                                  ...editingAntenna,
+                                  sectors: (editingAntenna.sectors || []).filter(s => s.id !== sec.id)
+                                });
+                              }}
+                              className="p-2 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all"
+                              title="Supprimer Secteur"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal Footer Save/Cancel */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingAntenna(null);
+                      setEditingSector(null);
+                    }}
+                    className="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!editingAntenna.name.trim()) return alert("Veuillez entrer le nom de l'antenne.");
+                      saveAntenna(editingAntenna);
+                      setSuccessMsg(`Antenne ${editingAntenna.name} (avec ${editingAntenna.sectors?.length || 0} secteurs) sauvegardée sur Firebase avec succès !`);
+                      setEditingAntenna(null);
+                      setEditingSector(null);
+                    }}
+                    className="px-8 py-3.5 rounded-2xl bg-[var(--accent-gold)] hover:bg-amber-400 text-slate-950 font-black text-sm transition-all shadow-xl flex items-center gap-2"
+                  >
+                    <Save className="w-5 h-5" />
+                    <span>Enregistrer dans Firebase</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: ANNOUNCEMENTS & LIVE BROADCAST TRIGGER SUITE */}
       {activeTab === 'announcements' && (
         <div className="space-y-6">
           <div className="glass-panel p-6 rounded-3xl border-2 border-[var(--accent-gold)] bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-tertiary)] flex flex-col sm:flex-row items-center justify-between gap-4">

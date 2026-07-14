@@ -12,10 +12,16 @@ import {
   SermonNote,
   AnnouncementItem,
   KziRegistrant,
-  KziWelcomeInfo
+  KziWelcomeInfo,
+  MgjAntenna,
+  MgjSector
 } from '../types/models';
 
 interface AppDataContextType {
+  antennas: MgjAntenna[];
+  saveAntenna: (antenna: MgjAntenna) => void;
+  deleteAntenna: (id: string) => void;
+  resetAntennasToDefault: () => void;
   notifications: NotificationItem[];
   announcements: AnnouncementItem[];
   shopItems: ShopItem[];
@@ -759,6 +765,355 @@ const initialKziRegistrants: KziRegistrant[] = [
   }
 ];
 
+export const initialAntennas: MgjAntenna[] = [
+  {
+    id: 'ant-lubumbashi',
+    number: 'I',
+    name: 'LUBUMBASHI',
+    country: 'RDC',
+    presidentName: 'PASTEUR JOHN KALALA',
+    presidentContact: '099 701 82 15',
+    sectors: [
+      { id: 'lub-1', name: 'BEL AIR', leaders: 'PASTEUR MICHEL BADI / BERGER DIDI DITU', contacts: '085 094 17 90 / 085 166 28 77', address: '20, AVENUE DES PLAINES, BEL AIR', days: 'LUNDI ET JEUDI', hours: '15H A 19H' },
+      { id: 'lub-2', name: 'KAMALONDO', leaders: 'PASTEUR DIDIER TSHIPAMA', contacts: '099 243 79 39', address: '234, KILWA, KAMALONDO', days: 'JEUDI ET DIMANCHE', hours: '15H A 19H' },
+      { id: 'lub-3', name: 'LIDO', leaders: 'PASTEUR RAYMOND NGOY', contacts: '099 584 09 00', address: '9, AVENUE NYANGWE, REF/ BASSIN LIDO/LIDO GOLF', days: 'LUNDI ET VENDREDI', hours: '15H A 19H' },
+      { id: 'lub-4', name: 'CARREFOUR', leaders: 'PASTEUR JOSUE NUNGA / PASTEUR EZECHIEL ILUNGA', contacts: '084 247 29 12 / 081 992 42 43', address: 'AVENUES MUHAMED COIN CHEMIN PUBLIC, REF. PLYCLINIQUE SAINTE AGNES, ARRET EXPRESS, CARREFOUR.', days: 'LUNDI ET JEUDI', hours: '16H A 18H30' },
+      { id: 'lub-5', name: 'CENTRE VILLE', leaders: 'PROPHETE SERGE HYPPO / PASTEUR GUY KASONGO', contacts: '099 205 75 74 / 099 974 80 30', address: '41, AVENUE MANIEMA, REF. FPI, CENTRE VILLE / KITANGO', days: 'LUNDI ET JEUDI / MERCREDI', hours: '15H A 19H / 9H A 16H' },
+      { id: 'lub-6', name: 'GOLF FAUSTIN', leaders: 'PASTEUR PAUL MULONGO', contacts: '099 100 46 11', address: 'GOLF FAUSTIN, LUBUMBASHI', days: 'LUNDI ET JEUDI', hours: '15H A 19H' },
+      { id: 'lub-7', name: 'KENYA', leaders: 'PASTEUR ELIE KOSHI', contacts: '097 464 97 13', address: '22, RUE KAMATANDA (CAMP REGIE)/KENYA', days: 'LUNDI ET JEUDI', hours: '15H A 18H30' },
+      { id: 'lub-8', name: 'GOLF PLATEAU KARAVIA', leaders: 'PASTEUR ZACHARIE EVAMBI / PAPA CHRISTIAN SUDI', contacts: '099 760 95 27 / 081 850 34 11', address: '23, AVENUE MUKUNTO, GOLF PLATEAU, REF/ARRET STATION GOLF PLATEAU', days: 'MERCREDI ET DIMANCHE', hours: '15H A 19H' },
+      { id: 'lub-9', name: 'KALUBWE', leaders: 'PASTEUR KOKO KALASA / PASTEUR CHRISTIAN SINYEMBO', contacts: '097 950 44 55 / 099 770 99 16', address: '19, AVENUE DES PIONNIERS, ARRET DES PRINCES, KALUBWE DOUBLE POTEAUX.', days: 'LUNDI ET JEUDI', hours: '15H A 18H30' },
+      { id: 'lub-10', name: 'KINKA VILLE', leaders: 'PROPHETE JEEF NKONGAL', contacts: '099 558 74 89', address: '4, AVENUE RUTSHURU, Q/TABACONGO, REF. ARRET CHENGE SUR DU MARCHE', days: 'LUNDI ET JEUDI', hours: '16H A 19H' },
+      { id: 'lub-11', name: 'GOLF MALELA', leaders: 'PASTEUR SONGO KASONGO', contacts: '099 817 95 78', address: '516, ROUTE KIPOPO GOLF MALELA', days: 'LUNDI ET JEUDI', hours: '16H A 19H' },
+      { id: 'lub-12', name: 'ALLILAC', leaders: 'PROPHETE KEN MUYAYA', contacts: '081 477 04 55', address: 'ALLILAC, LUBUMBASHI', days: 'MARDI ET DIMANCHE', hours: '14H A 19H' },
+      { id: 'lub-13', name: 'KILOBELOBE', leaders: 'PASTEUR JEREMIE MITSHABU', contacts: '099 770 19 34', address: 'KILOBELOBE, LUBUMBASHI', days: 'LUNDI ET JEUDI', hours: '15H A 19H' },
+      { id: 'lub-14', name: 'CELLULE LUANO', leaders: 'PROPHETE PIERRE OMARI', contacts: '099 103 22 23', address: 'CELLULE LUANO, LUBUMBASHI', days: 'MERCREDI ET VENDREDI', hours: '15H A 18H' },
+      { id: 'lub-15', name: 'HEWA BORA', leaders: 'PROPHETE ABRAHAM', contacts: '099 086 57 38', address: '741, AVENUE NYEMBO/ARRET BUS KABWE SESEYA', days: 'MARDI, VENDREDI ET DIMANCHE', hours: '15H A 19H' },
+      { id: 'lub-16', name: 'CELLULE MATSHIPISHA', leaders: 'PASTEUR RENE NKONGOLO', contacts: '081 507 53 80', address: 'CELLULE MATSHIPISHA, LUBUMBASHI', days: 'LUNDI ET JEUDI', hours: '15H A 19H' },
+      { id: 'lub-17', name: 'DU 30 JUIN', leaders: 'PASTEUR EZECHIEL RADJABU', contacts: '099 556 48 88', address: 'DU 30 JUIN, LUBUMBASHI', days: 'MERCREDI ET VENDREDI', hours: '16H A 18H30' },
+      { id: 'lub-18', name: 'KASAPA', leaders: 'BERGERE JUDITH KITETE', contacts: '099 398 54 54', address: 'KASAPA, LUBUMBASHI', days: 'JEUDI ET DIMANCHE', hours: '15H A 18H30' },
+      { id: 'lub-19', name: 'MWELA/GOLF', leaders: 'PASTEUR IRENE MANDAKU', contacts: '081 296 32 44', address: 'AVENUE KALUBI, Q, METEO 1, GOLF MWELA', days: 'MERCREDI ET VENDREDI', hours: '15H A 19H' },
+      { id: 'lub-20', name: 'JOLI SITE KINSEVERE', leaders: 'PASTEUR GRACE MWEPU', contacts: '099 411 22 22', address: 'ROUTE KINSEVERE 22e POTEAU', days: 'LUNDI ET JEUDI', hours: '16H A 19H' },
+      { id: 'lub-21', name: 'PLATEAU 4', leaders: 'BERGER DJO-GRACE NGOIE', contacts: '097 747 09 87', address: 'CS JENODICE/REF PETIT MARCHE DGI KAMANYOLA/PLATEAU 4/ Q,OASIS', days: 'LUNDI ET JEUDI', hours: '16H A 19H' },
+      { id: 'lub-22', name: 'RUASHI', leaders: 'PASTEUR JOSEPH TSHAMA', contacts: '097 483 01 02', address: 'RUASHI, LUBUMBASHI', days: 'LUNDI ET JEUDI', hours: '15H A 19H' },
+      { id: 'lub-23', name: 'CELLULE JUGES', leaders: 'BERGER RICHARD STONE', contacts: '097 414 61 94', address: 'CELLULE JUGES, LUBUMBASHI', days: 'MERCREDI ET DIMANCHE', hours: '15H A 19H' }
+    ]
+  },
+  {
+    id: 'ant-kolwezi',
+    number: 'II',
+    name: 'KOLWEZI',
+    country: 'RDC',
+    presidentName: 'PASTEUR PATRICK KANDA',
+    presidentContact: '099 522 45 55',
+    sectors: [
+      { id: 'kzi-1', name: 'QUARTIER', leaders: 'PASTEUR PATRICK KANDA / PAST NICO IRUNG / PAST ETIENNE MALITELE / PAST GABY MUNGONGE', contacts: '099 522 45 55 / 099 117 25 47 / 097 225 96 57 / 099 719 00 00', address: '182, AVENUE MUKAKA/QUARTIER', days: 'LUNDI ET JEUDI', hours: '15H30 A 19H' },
+      { id: 'kzi-2', name: 'VILLE', leaders: 'PASTEUR ELIE NDUMB / PAST LUC', contacts: '099 367 03 64 / 099 050 06 22', address: 'GAZUMBU N° 2, CENTRE VILLE', days: 'LUNDI ET JEUDI', hours: '15H30 A 19H30' },
+      { id: 'kzi-3', name: 'LUILU', leaders: 'PASTEUR GAMALIEL MITEU / PAST ETIENNE MILAMBWE', contacts: '081 405 40 35 / 099 903 45 81', address: 'REF : ECOLE DU PASTEUR/LUILU', days: 'MARDI ET DIMANCHE', hours: '16H A 19H30' },
+      { id: 'kzi-4', name: 'CITE GCM/KZI', leaders: 'PASTEUR HENRY EXCELLENCE KASHAL TSHIPWENU', contacts: '099 033 11 06', address: 'AV, BELANDE N° 4, CITE GCM KOLWEZI', days: 'MERCREDI ET VENDREDI', hours: '15H00 A 19H00' },
+      { id: 'kzi-5', name: 'QUARTIER LATIN', leaders: 'PASTEUR NICOLAS MWANGAL MUSHID / PAST GRACE ILUNGA', contacts: '099 711 04 71 / 099 923 37 24', address: '9ème CHEMIN PUBLIC', days: 'MARDI ET JEUDI', hours: '16H A 19H30' },
+      { id: 'kzi-6', name: 'JOLI SITE', leaders: 'PASTEUR TRIOMPHE MULANG / PAST MARC MULULU', contacts: '099 376 05 88', address: 'AV, YA MISANO REF MOON PALACE', days: 'LUNDI, JEUDI ET DIMANCHE', hours: '15H A 19H' },
+      { id: 'kzi-7', name: 'TSHALA UZK', leaders: 'PASTEUR MICHEE KAHETA', contacts: '097 672 00 13', address: 'AV, CHANGEUR FORT 2EME ARRET', days: 'MERCREDI ET LUNDI ET DIMANCHE', hours: '15H A 19H' },
+      { id: 'kzi-8', name: 'MUSONOI', leaders: 'PASTEUR JEREMIE KONGOLO / PAST HABACUC NGOIE', contacts: '099 979 30 81 / 099 125 28 43', address: 'TRABECA 5 N° 65, MUSONOI', days: 'VENDREDI', hours: '15H30 A 19H30' },
+      { id: 'kzi-9', name: 'KAPATA', leaders: 'PASTEUR CALEB KASONGO / PAST JEAN RENE SIMBA', contacts: '097 211 81 49', address: 'AVENUE BUKAVU N° 8', days: 'MARDI ET DIMANCHE', hours: '16H A 19H30' },
+      { id: 'kzi-10', name: 'CITE MANIKA', leaders: 'PASTEUR DJO NUMBI / PAST JEFF SILEKI', contacts: '099 793 79 62 / 099 448 81 15', address: 'N° AVENUE KASAI, CITE MANIKA', days: 'LUNDI ET MARDI', hours: '16H A 19H30' },
+      { id: 'kzi-11', name: 'DIUR', leaders: 'PASTEUR MARDOCHEE KALENDA', contacts: '097 149 31 41', address: 'AVENUE 3Z N° 39', days: 'VENDREDI ET DIMANCHE', hours: '15H00 A 19H00' },
+      { id: 'kzi-12', name: 'KAMANYOLA 2', leaders: 'PASTEUR GHYSLAIN MUBANGA RHEMA', contacts: '089 445 67 92', address: 'AVENUE TSHALA2 N° 29', days: 'MARDI ET VENDREDI', hours: '15H00 A 19H00' },
+      { id: 'kzi-13', name: 'QUARTIER LATIN 2', leaders: 'PASTEUR MICHEE KAHETA', contacts: '097 672 00 13', address: '68, AVENUE NDJIBULUBO', days: 'MERCREDI VENDREDI ET DIMANCHE', hours: '15H30 A 19H' },
+      { id: 'kzi-14', name: 'JOLI SITE GOUVERNORAT', leaders: 'PROPHETE ELIE MWENZ', contacts: '097 066 61 11', address: 'ROUTE KAZEMBE EN DIAGONALE DU GOUVERNORAT', days: 'LUNDI, MERCREDI ET DIMANCHE', hours: '16H A 19H30' },
+      { id: 'kzi-15', name: 'JOLI SITE 2', leaders: 'PASTEUR PATRICK KYEMO', contacts: '099 249 78 53', address: "CHEMIN PUBLIQUE EN DIAGNOLE DE L'ECOLE SAINT PAUL", days: 'MARDI ET SAMEDI', hours: '16H A 19H30' },
+      { id: 'kzi-16', name: 'TSHAMUNDENDA', leaders: 'PASTEUR EZECHIEL', contacts: '082 497 29 99', address: 'TSHAMUNDENDA, KOLWEZI', days: 'MARDI ET DIMANCHE', hours: '16H30 A 19H30' },
+      { id: 'kzi-17', name: 'KAMANYOLA 1', leaders: 'PROPHETE HERITIER GRACE MUSEBA', contacts: '081 737 44 31', address: '19, AVENUE TSHANIKA, Q. KAMANYOLA/ ARRET ORTHODOXE, CITE MANIKA', days: 'LUNDI, JEUDI ET SAMEDI', hours: '16H30 A 19H30' }
+    ]
+  },
+  {
+    id: 'ant-kinshasa',
+    number: 'III',
+    name: 'KINSHASA',
+    country: 'RDC',
+    presidentName: 'PROPHETE DJOGRACE MWENZE',
+    presidentContact: '081 350 66 77 / 081 350 66 17',
+    sectors: [
+      { id: 'kin-1', name: 'DELVAUX', leaders: 'PROPHETE DJOGRACE MWENZE / PROPHETE ETIENNE KABENGELE', contacts: '081 350 66 17 / 081 076 44 69', address: '17 ROUTE MATADI, AVENUE MAKANDA KABOBI, QUARTIER DELVAUX, COMMUNE NGALIEMA', days: 'LUNDI, JEUDI ET SAMEDI', hours: '16H30 A 19H30' },
+      { id: 'kin-2', name: 'OZONE', leaders: 'PROPHETE ALLAN KYARIAKOU / PASTEUR MORGAN BOKEKE', contacts: '082 100 88 27 / 097 294 13 77 / 081 032 85 71', address: '14, AVENUE KAMUNDU, QUARTIER MANENGA, COMMUNE NGALIEMA', days: 'MERCREDI, VENDREDI ET DIMANCHE', hours: '16H30 A 19H30' },
+      { id: 'kin-3', name: 'CITE VERTE (MAMAN MOBUTU)', leaders: 'PASTEUR JULES LUKOMBO', contacts: '081 364 35 44', address: '491, AVENUE LOGEC, QUARTIER MAMAN MOBUTU, COMMUNE MONT-NGAFULA', days: 'LUNDI, MERCREDI ET SAMEDI', hours: '17H30 A 20H30' },
+      { id: 'kin-4', name: 'UPN', leaders: 'PASTEUR DON DE DIEU MAFUALA NKUSU', contacts: '089 790 00 10 / 081 310 00 10', address: '01, AVENUE BIKELA, REF. ALLEE SAMBA, Q/NGOMBA KIKUSA, COMMUNE NGALIEMA', days: 'MARDI ET DIMANCHE', hours: '17H A 19H30' },
+      { id: 'kin-5', name: 'KINGASANI', leaders: 'PASTEUR GHISLAIN KIANGEBENE', contacts: '089 988 19 26', address: '59, AVENUE NGAMBO, QUARTIER PASCAL, COMMUNE KIMBASEKE', days: 'LUNDI, JEUDI ET DIMANCHE', hours: '17H30 A 19H30' },
+      { id: 'kin-6', name: 'MBUDI', leaders: 'PASTEUR DIDIER BOOFI', contacts: '099 312 67 42', address: '70, AVENUE SANKURU, QUARIER MAZALA, CPA/NGALIEMA', days: 'MARDI ET DIMANCHE', hours: '16H30 A 19H30' },
+      { id: 'kin-7', name: 'YOLO', leaders: 'PASTEUR DIEUDONNE TSHABOLA', contacts: '089 669 53 39', address: '63, AVENUE ANGO, QUARTIER YOLO NORD, REF, ARRET CHAPPELLE/KALAMU', days: 'LUNDI ET VENDREDI', hours: '16H30 A 19H30' },
+      { id: 'kin-8', name: 'KINTAMBO', leaders: 'PASTEUR HERVE LUKEMBO', contacts: '081 881 78 60', address: '942, AVENUE COLONEL MONDJIBA, COMMUNE KINTAMBO', days: 'MARDI', hours: '16H30 A 19H30' }
+    ]
+  },
+  {
+    id: 'ant-likasi',
+    number: 'IV',
+    name: 'LIKASI',
+    country: 'RDC',
+    presidentName: 'MZEE JULIEN BANZA',
+    presidentContact: '081 409 20 33',
+    sectors: [
+      { id: 'lik-1', name: 'VILLE', leaders: 'MZEE JULIEN BANZA / DENIS MASSAMBA', contacts: '081 409 20 33 / 081 240 20 77', address: '4, AVENUE DES ORANGERS, Q/ZOUT, LIKASI', days: 'MARDI ET SAMEDI / VENDREDI', hours: '15H A 18H / 9H A 18H' },
+      { id: 'lik-2', name: 'TOYOTA', leaders: 'BERGER DARIL', contacts: '089 949 67 34', address: '47, ROUTE MWADINGUSHA, QUARTIER TOYOTA', days: 'MARDI, VENDREDI ET DIMANCHE', hours: '15H A 18H' },
+      { id: 'lik-3', name: 'BRASSERIE', leaders: 'BERGER JOSUE', contacts: '097 700 43 71', address: 'AVENUE TALITA KUMI, Q/KAMATANDA, LIKASI', days: 'MARDI ET DIMANCHE', hours: '15H A 18H' },
+      { id: 'lik-4', name: 'BINAME', leaders: 'BERGER JEREMIE KAPUMBA', contacts: '099 224 17 62', address: '164, AVENUE FOYER SOCIAL, KIKULA', days: 'MARDI, VENDREDI ET DIMANCHE', hours: '15H A 18H' },
+      { id: 'lik-5', name: 'KAMATANDA', leaders: 'PASTEUR AUBIN KITONGA', contacts: '099 702 89 04', address: 'DERRIERE CHEMAF, ROUTE KAMATANDA, QUARTIER KAMATANDA', days: 'MERCREDI, SAMEDI ET DIMANCHE', hours: '15H A 18 H' },
+      { id: 'lik-6', name: 'QUARTIER MISSION', leaders: 'PASTEUR NONO KAPISI', contacts: '084 403 00 61', address: '44, AVENUE MUSONOI, QUARTIER MISSION, LIKASI', days: 'MERCREDI ET DIMANCHE', hours: '15H A 18H' },
+      { id: 'lik-7', name: 'PANDA', leaders: 'BERGER MIRADI HUSSEN', contacts: '099 155 62 55', address: '21, AVENUE DU BRONZE PROLONGEE, Q, PEPINIERE/ PANDA', days: 'MARDI ET DIMANCHE', hours: '15H A 18H' },
+      { id: 'lik-8', name: 'SAER', leaders: 'BERGER RODRIGUE KAPAMBWE', contacts: '097 649 09 66', address: 'AVENUE CHEMIN PUBLIC, COMMUNE SHITURU', days: 'MARDI ET DIMANCHE', hours: '15H A 18 H' }
+    ]
+  },
+  {
+    id: 'ant-kasumbalesa',
+    number: 'V',
+    name: 'KASUMBALESA',
+    country: 'RDC',
+    presidentName: 'PASTEUR NGOYI MARDOCHEE',
+    presidentContact: '099 714 73 72',
+    sectors: [
+      { id: 'kas-1', name: 'KASUMBALESA', leaders: 'PASTEUR NGOYI MARDOCHEE', contacts: '099 714 73 72', address: 'QUARTIER GOLF MAGISTRAT MICHEL, REF. SOUS CIAT POLICE', days: 'MARDI, VENDREDI ET DIMANCHE', hours: '16H30 A 19H' }
+    ]
+  },
+  {
+    id: 'ant-fungurume',
+    number: 'VI',
+    name: 'FUNGURUME',
+    country: 'RDC',
+    presidentName: 'APOTRE JOSUE TSHIBANDA',
+    presidentContact: '099 486 15 04',
+    sectors: [
+      { id: 'fun-1', name: 'KABILA', leaders: 'APOTRE JOSUE TSHIBANDA', contacts: '099 486 15 04', address: '07, ROUTE ORTHODOXE/FGM', days: 'JEUDI ET DIMANCHE', hours: '15H30 A 19H30' },
+      { id: 'fun-2', name: 'QUARTIER BISIPI', leaders: 'BERGERE PRISCA KIBUTA', contacts: '084 409 56 20', address: '11, AVENUE KIMBANGU/FGM', days: 'LUNDI, MERCREDI ET VENDREDI', hours: '17H A 19H' }
+    ]
+  },
+  {
+    id: 'ant-kambove',
+    number: 'VII',
+    name: 'KAMBOVE',
+    country: 'RDC',
+    presidentName: 'PASTEUR RICHARD KASANDA',
+    presidentContact: '090 341 00 62',
+    sectors: [
+      { id: 'kam-1', name: 'CENTRE URBAIN', leaders: 'PASTEUR RICHARD KASANDA', contacts: '090 341 00 62', address: '514, AVENUE EBEYA (5ème AVENUE)', days: 'JEUDI, SAMEDI ET DIMANCHE', hours: '15H30 A 18H30' },
+      { id: 'kam-2', name: 'SAFRICAS', leaders: 'BERGER ELIE KYABU', contacts: '081 237 01 08', address: 'QUARTIER SAFRICAS', days: 'MERCREDI ET DIMANCHE', hours: '15H30 A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-kakanda',
+    number: 'VIII',
+    name: 'KAKANDA',
+    country: 'RDC',
+    presidentName: 'APOTRE JOSEPH TSHAMA',
+    presidentContact: '082 513 30 36 / 097 483 01 02',
+    sectors: [
+      { id: 'kak-1', name: 'BIENVENUE', leaders: 'APOTRE JOSEPH TSHAMA / PASTEUR NOELLA ILUNGA TSHITUKA DONEL', contacts: '081 513 30 36 / 097 483 01 02 / 082 201 26 38 / 097 002 72 73', address: '1, AVENUE SOUS STATION, KAKANDA', days: 'JEUDI, SAMEDI ET DIMANCHE / MARDI', hours: '15H30 A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-kipushi',
+    number: 'IX',
+    name: 'KIPUSHI',
+    country: 'RDC',
+    presidentName: 'PROPHETE CALEB MUKENGE',
+    presidentContact: '097 822 27 24',
+    sectors: [
+      { id: 'kip-1', name: 'KIPUSHI', leaders: 'PROPHETE CALEB MUKENGE', contacts: '097 822 27 24', address: '04, AVENUE DES EXPLOSIFS, QUARTIER GOLF PLATEAU', days: 'LUNDI, JEUDI ET DIMANCHE', hours: '15H A 18H30' },
+      { id: 'kip-2', name: 'QUARTIER LUITA', leaders: 'BERGER LUDYA', contacts: '082 106 21 61', address: 'QUARTIER LUITA, KIPUSHI', days: 'MERCREDI, VENDREDI ET SAMEDI', hours: '15H30 A 18H' }
+    ]
+  },
+  {
+    id: 'ant-sakania',
+    number: 'X',
+    name: 'SAKANIA',
+    country: 'RDC',
+    presidentName: 'PASTEUR IMBA NGOPINA',
+    presidentContact: '099 716 11 28',
+    sectors: [
+      { id: 'sak-1', name: 'SAKANIA', leaders: 'PASTEUR IMBA NGOPINA', contacts: '099 716 11 28', address: 'QUARTIER DOUANE, REF. DERRIERE BUREAU SONAS', days: 'MARDI, JEUDI ET DIMANCHE', hours: '15H A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-kamina',
+    number: 'XI',
+    name: 'KAMINA',
+    country: 'RDC',
+    presidentName: 'PASTEUR JEAN GRACE LUNDA',
+    presidentContact: '099 540 21 85',
+    sectors: [
+      { id: 'kma-1', name: 'KAMINA', leaders: 'PASTEUR JEAN GRACE LUNDA', contacts: '099 540 21 85', address: 'KAMINA, RDC', days: 'LUNDI ET JEUDI', hours: '15H A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-moba',
+    number: 'XII',
+    name: 'MOBA',
+    country: 'RDC',
+    presidentName: 'PASTEUR SLUCIEN SUMAHILI',
+    presidentContact: '081 702 68 80',
+    sectors: [
+      { id: 'mob-1', name: 'MOBA PORT', leaders: 'PASTEUR SLUCIEN SUMAHILI / BERGER STEVE', contacts: '081 702 68 80 / 081 462 45 94', address: 'MOBA PORT/ QUARTIER REGEZA AU SIEGE DES MGJ MOBA', days: 'MERCREDI / DIMANCHE', hours: '16H A 18H30 / 15H A 18H30' },
+      { id: 'mob-2', name: 'KIRUNGU', leaders: 'BERGER ERNEST MBAVU / PROPHETE FREDDY SANGWA', contacts: '085 813 50 07 / 099 020 01 97', address: 'AVENUE KEYANIKA, BLOC KIBYA, QUARTIER KIRUNGU, MOBA', days: 'MARDI, JEUDI ET SAMEDI', hours: '15H A 18H' },
+      { id: 'mob-3', name: 'CELLULE MWANZA', leaders: 'BERGER JOSEPH SOSO', contacts: '081 446 03 53', address: 'CELLULE MWANZA, MOBA', days: 'DIMANCHE', hours: '15H A 18H' }
+    ]
+  },
+  {
+    id: 'ant-kalemie',
+    number: 'XIII',
+    name: 'KALEMIE',
+    country: 'RDC',
+    presidentName: 'PASTEUR NICO KALALA',
+    presidentContact: '099 268 95 33',
+    sectors: [
+      { id: 'kal-1', name: 'KALEMIE', leaders: 'PASTEUR NICO KALALA', contacts: '099 268 95 33', address: 'KALEMIE, RDC', days: 'MERCREDI ET DIMANCHE', hours: '15H A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-goma',
+    number: 'XIV',
+    name: 'GOMA',
+    country: 'RDC',
+    presidentName: 'PASTEUR SAMBA TABU',
+    presidentContact: '097 045 39 09',
+    sectors: [
+      { id: 'gom-1', name: 'GOMA', leaders: 'PASTEUR SAMBA TABU', contacts: '097 045 39 09', address: "27, AVENUE DE LA MISSION, Q/ HIMBI, REF, EN FACE DE LA MAISON DE L'EX MAIRE TUMBULA", days: 'JEUDI ET DIMANCHE', hours: '15H A 17H30' }
+    ]
+  },
+  {
+    id: 'ant-bunia',
+    number: 'XV',
+    name: 'BUNIA',
+    country: 'RDC',
+    presidentName: 'PASTEUR DIEU MERCI ASIFIWE',
+    presidentContact: '081 218 64 65',
+    sectors: [
+      { id: 'bun-1', name: 'BUNIA', leaders: 'PASTEUR DIEU MERCI ASIFIWE', contacts: '081 218 64 65', address: "EN FACE DE L'ONG GEOC, PARALLELE AU GARAGE INPP, ROUTE VENANT DE ROND POINT PIC NIC", days: 'DIMANCHE', hours: '15H A 17H30' }
+    ]
+  },
+  {
+    id: 'ant-kisangani',
+    number: 'XVI',
+    name: 'KISANGANI',
+    country: 'RDC',
+    presidentName: 'PASTEUR PAULIN IYOKO EANGA',
+    presidentContact: '084 378 24 43',
+    sectors: [
+      { id: 'kis-1', name: 'KISANGANI', leaders: 'PASTEUR PAULIN IYOKO EANGA', contacts: '084 378 24 43', address: '5, AVENUE LAC NYASSA, COMMUNE MAKISO, REF, EX BUREAU OMS A COTE DE LA RTEDI, DERRIERE DEPOT MAKAYABO', days: 'JEUDI ET DIMANCHE', hours: '15H A 18H30' }
+    ]
+  },
+  {
+    id: 'ant-brazzaville',
+    number: 'XVII',
+    name: 'BRAZZAVILLE',
+    country: 'CONGO-BRAZZAVILLE',
+    presidentName: 'PASTEUR SYLVAIN BATSHINA',
+    presidentContact: '00 24206994912',
+    sectors: [
+      { id: 'bra-1', name: 'OUENZE', leaders: 'PASTEUR SYLVAIN BATSHINA', contacts: '00 24206994912', address: 'OUENZE, BRAZZAVILLE', days: 'VENDREDI ET DIMANCHE', hours: '16H A 19H' }
+    ]
+  },
+  {
+    id: 'ant-kitwe-zambia',
+    number: 'XVIII',
+    name: 'KITWE/ZAMBIA',
+    country: 'ZAMBIE',
+    presidentName: 'PASTEUR DANIEL MPETEMOYA',
+    presidentContact: '00 260966197706',
+    sectors: [
+      { id: 'zam-1', name: 'MUSONDA COMPOUND', leaders: 'FRERE GREGORY CONSTANTINO', contacts: '00 260966053024', address: '7329, MUSONDA COMPOUND, KITWE', days: 'VENDREDI', hours: '16H A 18H' },
+      { id: 'zam-2', name: 'NDEKE VILLAGE', leaders: 'PASTEUR DANIEL MPETEMOYA', contacts: '00 260966197706', address: 'G488 NDEKE VILLAGE, KITWE', days: 'VENDREDI', hours: '16H A 18H' },
+      { id: 'zam-3', name: 'KAMAKONDE', leaders: 'PASTEUR MWAKA MULONDA', contacts: '00 260953160307', address: '1344, KITWE WEST KAMAKONDE', days: 'SAMEDI ET DIMANCHE', hours: '15H A 18H' }
+    ]
+  },
+  {
+    id: 'ant-namibia',
+    number: 'XIX',
+    name: 'NAMIBIA',
+    country: 'NAMIBIE',
+    presidentName: 'PASTEUR JACQUES MUNUNG',
+    presidentContact: '00 264818417293',
+    sectors: [
+      { id: 'nam-1', name: 'WINDHOEK', leaders: 'PASTEUR JACQUES MUNUNG', contacts: '00 264818417293', address: 'WINDHOEK NORTH. REF. RHENO MEDICAL/MOTACS COLLEGE / MONTAGNE', days: 'LUNDI ET VENDREDI / SAMEDI', hours: '17H A 20H / 8H A 12H30' }
+    ]
+  },
+  {
+    id: 'ant-dar-es-salaam',
+    number: 'XX',
+    name: 'DAR ES SALAAM',
+    country: 'TANZANIE',
+    presidentName: 'FRERE JONATHAN LUKUSA',
+    presidentContact: '00 255788189078',
+    sectors: [
+      { id: 'dar-1', name: 'DAR ES SALAAM', leaders: 'FRERE JONATHAN LUKUSA', contacts: '00 255788189078', address: 'QUARTIER KINONDONI, REF. MKWAJINI (BATIMENT HOUSE OF PRAYER)', days: 'JEUDI ET DIMANCHE', hours: '16H A 19H' }
+    ]
+  },
+  {
+    id: 'ant-jobourg',
+    number: 'XXI',
+    name: "JO'BOURG",
+    country: 'AFRIQUE DU SUD',
+    presidentName: 'PASTEUR OLIVIER KATOPWA / PASTEUR JEREMIE MONGA',
+    presidentContact: '00 27812532771 / 00 27833129488',
+    sectors: [
+      { id: 'job-1', name: 'CRESTA', leaders: 'PASTEUR JEREMIE MONGA / PASTEUR OLIVIER KATOPWA', contacts: '00 27833129488 / 00 27812532771', address: '18 B, HILL CRESTA, CNR BAYERS NAUDE & JUDGES', days: 'SAMEDI', hours: '16H A 18H' },
+      { id: 'job-2', name: 'KENSINGTON 1', leaders: 'PROPHETE TONNY KANDA / PASTEUR MIKE', contacts: '00 27619836749 / 00 27787662488', address: '8TH AVENUE, BEZUIDENHOUT VALLEY', days: 'LUNDI / DIMANCHE', hours: '17H A 19H / 16H A 19H' }
+    ]
+  },
+  {
+    id: 'ant-pretoria',
+    number: 'XXII',
+    name: 'PRETORIA',
+    country: 'AFRIQUE DU SUD',
+    presidentName: 'SŒUR CARINE MBAL',
+    presidentContact: '00 27781515214',
+    sectors: [
+      { id: 'pre-1', name: 'PRETORIA', leaders: 'SŒUR CARINE MBAL', contacts: '00 27781515214', address: '458, MANITOBA DR FAERIEZ GLEN AT 401 GLEN MEAD FLAT, PRETORIA 081', days: 'MARDI ET DIMANCHE', hours: '17H A 19H30' }
+    ]
+  },
+  {
+    id: 'ant-durban',
+    number: 'XXIII',
+    name: 'DURBAN',
+    country: 'AFRIQUE DU SUD',
+    presidentName: 'PASTEUR MICHEL TEBULO',
+    presidentContact: '00 27738243099',
+    sectors: [
+      { id: 'dur-1', name: 'DURBAN', leaders: 'PASTEUR MICHEL TEBULO', contacts: '00 27738243099', address: '437, POINT ROAD, AT CARMENELLO DAYCARE CENTRE IN SOUTH BEACH', days: 'SAMEDI ET DIMANCHE', hours: '17H30 A 20H' }
+    ]
+  },
+  {
+    id: 'ant-cape-town',
+    number: 'XXIV',
+    name: 'CAPE TOWN',
+    country: 'AFRIQUE DU SUD',
+    presidentName: 'PASTEUR EMMANUEL NDUWA',
+    presidentContact: '00 26878515970',
+    sectors: [
+      { id: 'cap-1', name: 'CAPE TOWN', leaders: 'PASTEUR EMMANUEL NDUWA', contacts: '00 26878515970', address: 'CAPE TOWN, AFRIQUE DU SUD', days: 'SAMEDI ET DIMANCHE', hours: '16H A 18H' }
+    ]
+  },
+  {
+    id: 'ant-swazilande',
+    number: 'XXV',
+    name: 'SWAZILANDE',
+    country: 'SWAZILAND',
+    presidentName: 'BERGER GLORY KATENDE / BERGER MASEKO',
+    presidentContact: '00 2687865116 / 00 26876138200',
+    sectors: [
+      { id: 'swa-1', name: 'MANZINI', leaders: 'BERGER GLORY KATENDE / BERGER MASEKO', contacts: '00 2687865116 / 00 26876138200', address: 'PARK HOTEL, MANZINI', days: 'SAMEDI', hours: '14H A 17H' }
+    ]
+  },
+  {
+    id: 'ant-usa',
+    number: 'XXVI',
+    name: 'USA',
+    country: 'USA',
+    presidentName: 'APOTRE DARIMATHEE KASONGO',
+    presidentContact: '+1 469-808-8888',
+    sectors: [
+      { id: 'usa-1', name: 'USA & ONLINE MGJ', leaders: 'APOTRE DARIMATHEE KASONGO', contacts: '+1 469-808-8888', address: 'DALLAS, TEXAS & ONLINE MGJ USA', days: 'JEUDI ET DIMANCHE', hours: '19H00 (EST)' }
+    ]
+  }
+];
+
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -897,6 +1252,13 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch (e) { return initialKziWelcomeInfo; }
   });
 
+  const [antennas, setAntennas] = useState<MgjAntenna[]>(() => {
+    try {
+      const saved = localStorage.getItem('mediamondemjg_antennas');
+      return saved ? JSON.parse(saved) : initialAntennas;
+    } catch (e) { return initialAntennas; }
+  });
+
   useEffect(() => { try { localStorage.setItem('mediamondemjg_announcements', JSON.stringify(announcements)); } catch (e) { console.warn(e); } }, [announcements]);
   useEffect(() => { try { localStorage.setItem('mediamondemjg_notifs', JSON.stringify(notifications)); } catch (e) { console.warn(e); } }, [notifications]);
   useEffect(() => { try { localStorage.setItem('mediamondemjg_shop', JSON.stringify(shopItems)); } catch (e) { console.warn(e); } }, [shopItems]);
@@ -908,6 +1270,7 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => { try { localStorage.setItem('mediamondemjg_notes', JSON.stringify(sermonNotes)); } catch (e) { console.warn(e); } }, [sermonNotes]);
   useEffect(() => { try { localStorage.setItem('mediamondemjg_kzi_regs_v2', JSON.stringify(kziRegistrantsList)); } catch (e) { console.warn(e); } }, [kziRegistrantsList]);
   useEffect(() => { try { localStorage.setItem('mediamondemjg_kzi_info_v2', JSON.stringify(kziWelcomeInfo)); } catch (e) { console.warn(e); } }, [kziWelcomeInfo]);
+  useEffect(() => { try { localStorage.setItem('mediamondemjg_antennas', JSON.stringify(antennas)); } catch (e) { console.warn(e); } }, [antennas]);
 
   useEffect(() => {
     // 1. Speakers sync directly from Firebase Firestore (Single Source of Truth)
@@ -992,6 +1355,17 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setKziRegistrantsList(liveRegs);
     }, (error) => console.warn('kzi_registrants sync error:', error));
 
+    // 9. Antennes & Secteurs sync directly from Firebase Firestore
+    const unsubAntennas = onSnapshot(collection(db, 'mgj_antennas'), (snapshot) => {
+      if (!snapshot.empty) {
+        const liveAntennas: MgjAntenna[] = [];
+        snapshot.forEach((docSnap) => liveAntennas.push(docSnap.data() as MgjAntenna));
+        setAntennas(liveAntennas);
+      } else {
+        initialAntennas.forEach(a => setDoc(doc(db, 'mgj_antennas', a.id), a).catch(() => {}));
+      }
+    }, (error) => console.warn('mgj_antennas sync error:', error));
+
     return () => {
       unsubSpeakers();
       unsubSchedule();
@@ -1001,6 +1375,7 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
       unsubOrders();
       unsubDonations();
       unsubKziRegistrants();
+      unsubAntennas();
     };
   }, []);
 
@@ -1415,8 +1790,41 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSermonNotes(prev => prev.filter(n => n.id !== id));
   };
 
+  const saveAntenna = (antenna: MgjAntenna) => {
+    setAntennas(prev => {
+      const exists = prev.some(a => a.id === antenna.id);
+      if (exists) {
+        return prev.map(a => a.id === antenna.id ? antenna : a);
+      }
+      return [...prev, antenna];
+    });
+    setDoc(doc(db, 'mgj_antennas', antenna.id), antenna, { merge: true }).catch(err => {
+      console.warn('saveAntenna error:', err);
+    });
+  };
+
+  const deleteAntenna = (id: string) => {
+    setAntennas(prev => prev.filter(a => a.id !== id));
+    deleteDoc(doc(db, 'mgj_antennas', id)).catch(err => {
+      console.warn('deleteAntenna error:', err);
+    });
+  };
+
+  const resetAntennasToDefault = () => {
+    setAntennas(initialAntennas);
+    initialAntennas.forEach(a => {
+      setDoc(doc(db, 'mgj_antennas', a.id), a).catch(err => {
+        console.warn('resetAntennas error:', err);
+      });
+    });
+  };
+
   return (
     <AppDataContext.Provider value={{
+      antennas,
+      saveAntenna,
+      deleteAntenna,
+      resetAntennasToDefault,
       notifications,
       announcements,
       shopItems,

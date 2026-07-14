@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableMultiTabIndexedDbPersistence, enableIndexedDbPersistence } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Your web app's Firebase configuration
@@ -20,6 +20,15 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Enable offline IndexedDB persistence with automatic sync upon internet reconnection
+try {
+  enableMultiTabIndexedDbPersistence(db).catch(() => {
+    enableIndexedDbPersistence(db).catch(() => {});
+  });
+} catch (e) {
+  // Safe catch for environments not supporting IndexedDB
+}
 
 // Initialize Analytics safely (only in supported browser environments)
 isSupported().then((supported) => {

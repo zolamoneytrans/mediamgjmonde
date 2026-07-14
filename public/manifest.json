@@ -1,17 +1,14 @@
 {
-  "name": "MediaMondeMJG - Ministères Génération Joël",
-  "short_name": "MediaMondeMJG",
-  "description": "Application PWA et Mobile du Ministère Génération Joël (MGJ Monde). Direct, Convention Kzi, Offrandes et Boutique.",
-  "theme_color": "#4a6b22",
-  "background_color": "#0f172a",
+  "name": "Media MGJ Monde - Administration",
+  "short_name": "MGJ Monde",
+  "start_url": "/admin",
+  "scope": "/",
   "display": "standalone",
-  "start_url": "/",
-  "orientation": "portrait",
+  "background_color": "#0d1b0d",
+  "theme_color": "#f5a623",
   "icons": [
-    {
-      "src": "/logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

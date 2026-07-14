@@ -156,3 +156,24 @@ export interface KziWelcomeInfo {
   hotelAdviceFr: string;
 }
 
+export interface MgjSector {
+  id: string;
+  name: string;
+  leaders: string;
+  contacts: string;
+  address: string;
+  days: string;
+  hours: string;
+}
+
+export interface MgjAntenna {
+  id: string;
+  number: string;
+  name: string;
+  country: string;
+  presidentName: string;
+  presidentContact: string;
+  sectors: MgjSector[];
+}
+
+

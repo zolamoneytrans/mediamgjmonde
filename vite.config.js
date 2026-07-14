@@ -22,32 +22,20 @@ export default defineConfig({
                     }
                 ]
             },
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-512-maskable.png'],
+            manifestFilename: 'manifest.json',
             manifest: {
-                name: 'MediaMondeMJG - Ministères Génération Joël',
-                short_name: 'MediaMondeMJG',
-                description: 'Application officielle de diffusion média, de streaming en direct et de la Grande Convention Kzi du Ministère Génération Joël (MGJ Monde).',
-                theme_color: '#4a6b22',
-                background_color: '#0f172a',
+                name: 'Media MGJ Monde - Administration',
+                short_name: 'MGJ Monde',
+                start_url: '/admin',
+                scope: '/',
                 display: 'standalone',
-                orientation: 'portrait',
+                background_color: '#0d1b0d',
+                theme_color: '#f5a623',
                 icons: [
-                    {
-                        src: 'pwa-192x192.png',
-                        sizes: '192x192',
-                        type: 'image/png'
-                    },
-                    {
-                        src: 'pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png'
-                    },
-                    {
-                        src: 'pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                        purpose: 'any maskable'
-                    }
+                    { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+                    { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+                    { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
                 ]
             }
         })
