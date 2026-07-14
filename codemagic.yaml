@@ -36,7 +36,19 @@ workflows:
 
       - name: Step 1 — Create distribution certificate explicitly (generates + saves private key)
         script: |
-          app-store-connect create-certificate --type IOS_DISTRIBUTION --save
+          mkdir -p "$HOME/Library/MobileDevice/Certificates"
+          echo "Generating RSA 2048 private key and Certificate Signing Request (CSR)..."
+          openssl genrsa -out "$HOME/Library/MobileDevice/Certificates/distribution.key" 2048
+          openssl req -new -key "$HOME/Library/MobileDevice/Certificates/distribution.key" -out "$HOME/Library/MobileDevice/Certificates/distribution.csr" -subj "/CN=Media MGJ Monde/O=Zola Money Trans/C=FR"
+          echo "Submitting CSR to Apple Developer Portal and saving .p12..."
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --csr "$HOME/Library/MobileDevice/Certificates/distribution.csr" \
+            --private-key "$HOME/Library/MobileDevice/Certificates/distribution.key" \
+            --save \
+            --verbose
+          keychain add-certificates || true
+          security set-key-partition-list -S apple-tool,apple,codesign -s -k "" login.keychain-db || true
 
       - name: Step 2 — Verify certificate and private key were saved
         script: |
