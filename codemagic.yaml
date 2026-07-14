@@ -33,13 +33,10 @@ workflows:
       - name: Set up keychain for code signing
         script: keychain initialize
 
-      - name: Diagnostic — list existing distribution certificates on Apple's side
+      - name: Diagnostic — list existing distribution certificates and profiles on Apple's side
         script: |
           echo "---- Certificates currently registered with Apple ----"
-          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty
-
-      - name: Diagnostic — list existing profiles for this bundle ID
-        script: |
+          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty || true
           echo "---- Profiles currently registered for $BUNDLE_ID ----"
           app-store-connect list-bundle-ids --identifier "$BUNDLE_ID" --pretty || true
 
@@ -48,17 +45,26 @@ workflows:
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP \
             || echo "Bundle ID likely already exists — continuing"
 
-      - name: Fetch or create distribution certificate and provisioning profile
+      - name: Explicitly generate fresh iOS Distribution Certificate & RSA Private Key (.p12) via API
+        script: |
+          echo "Creating distribution certificate and saving private key..."
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save --verbose || true
+          keychain add-certificates || true
+
+      - name: Fetch or create provisioning profile for App Store Connect
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --certificate-type IOS_DISTRIBUTION \
             --create \
-            --create-certificate \
             --verbose
 
-      - name: Add certificates and profiles to keychain
-        script: keychain add-certificates
+      - name: Add certificates and profiles to keychain and verify valid identities
+        script: |
+          keychain add-certificates
+          echo "---- Downloaded Provisioning Profiles ----"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles" || true
+          echo "---- Valid Code Signing Identities in Keychain ----"
+          security find-identity -v -p codesigning || true
 
       - name: Set up code signing settings on Xcode project
         script: |
