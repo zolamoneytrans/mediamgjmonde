@@ -34,6 +34,13 @@ workflows:
         script: |
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
 
+      - name: Diagnostic — print all existing certificates returned by Apple API right now
+        script: |
+          echo "=== ALL DISTRIBUTION CERTIFICATES IN APPLE DEVELOPER PORTAL ==="
+          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty || true
+          echo "=== ALL CERTIFICATES OF ANY TYPE ==="
+          app-store-connect list-certificates --pretty || true
+
       - name: Generate Apple Certificate (.p12) & Provisioning Profile (.mobileprovision) atomically
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
