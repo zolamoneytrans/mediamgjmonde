@@ -39,7 +39,6 @@ workflows:
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create \
-            --create-certificate \
             --verbose
 
       - name: Add downloaded certificates & profiles to keychain and authorize codesign
