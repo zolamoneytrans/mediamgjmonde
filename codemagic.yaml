@@ -34,14 +34,7 @@ workflows:
         script: |
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
 
-      - name: Generate Apple Distribution Certificate (.cer & .p12) from scratch
-        script: |
-          echo "Generating RSA private key and distribution certificate..."
-          app-store-connect certificates create --type IOS_DISTRIBUTION --save --verbose || app-store-connect certificates --create --type IOS_DISTRIBUTION --save --verbose || true
-          keychain add-certificates || true
-          security set-key-partition-list -S apple-tool,apple,codesign -s -k "" login.keychain-db || true
-
-      - name: Generate Apple Provisioning Profile (.mobileprovision) from scratch
+      - name: Generate Apple Certificate (.p12) & Provisioning Profile (.mobileprovision) atomically
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
