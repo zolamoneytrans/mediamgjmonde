@@ -6,6 +6,9 @@ workflows:
     integrations:
       app_store_connect: app_store3
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mediamgj.monde
       node: v22.13.0
       xcode: latest
     scripts:
