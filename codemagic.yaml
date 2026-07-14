@@ -6,6 +6,10 @@ workflows:
     integrations:
       app_store_connect: app_store
     environment:
+      vars:
+        BUNDLE_ID: "com.mediamgj.monde"
+        XCODE_PROJECT: "$CM_BUILD_DIR/ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.mediamgj.monde
@@ -33,10 +37,10 @@ workflows:
           keychain add-certificates || true
       - name: Ensure App ID exists on Apple Developer Portal automatically
         script: |
-          app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
+          app-store-connect create-bundle-id --id "com.mediamgj.monde" --name "Media MGJ Monde" --type APP || true
       - name: Automatically fetch and create missing Certificates & Provisioning Profiles
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+          app-store-connect fetch-signing-files "com.mediamgj.monde" \
             --type IOS_APP_STORE \
             --create \
             --create-certificate \
