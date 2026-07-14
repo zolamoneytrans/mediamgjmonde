@@ -17,52 +17,63 @@ workflows:
       xcode: latest
     scripts:
       - name: Install NPM dependencies
-        script: |
-          npm install
+        script: npm install
+
       - name: Build Web Bundle (Vite)
-        script: |
-          npm run build
+        script: npm run build
+
       - name: Sync Capacitor iOS Platform
-        script: |
-          npx cap sync ios
+        script: npx cap sync ios
+
       - name: Auto-increment iOS build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
           agvtool new-version -all $(($BUILD_NUMBER + 20))
+
       - name: Set up keychain for code signing
+        script: keychain initialize
+
+      - name: Diagnostic — list existing distribution certificates on Apple's side
         script: |
-          keychain initialize
-      - name: Add existing distribution certificates to keychain if any
+          echo "---- Certificates currently registered with Apple ----"
+          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty
+
+      - name: Diagnostic — list existing profiles for this bundle ID
         script: |
-          keychain add-certificates || true
-      - name: Ensure App ID exists on Apple Developer Portal automatically
+          echo "---- Profiles currently registered for $BUNDLE_ID ----"
+          app-store-connect list-bundle-ids --identifier "$BUNDLE_ID" --pretty || true
+
+      - name: Ensure App ID exists on Apple Developer Portal
         script: |
-          app-store-connect create-bundle-id --id "com.mediamgj.monde" --name "Media MGJ Monde" --type APP || true
-      - name: Generate fresh iOS Distribution Certificate & Private Key (.p12) via API
+          app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP \
+            || echo "Bundle ID likely already exists — continuing"
+
+      - name: Fetch or create distribution certificate and provisioning profile
         script: |
-          app-store-connect create-certificate --type IOS_DISTRIBUTION --save || true
-          keychain add-certificates || true
-      - name: Automatically fetch and create missing Certificates & Provisioning Profiles
-        script: |
-          app-store-connect fetch-signing-files "com.mediamgj.monde" \
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-type IOS_DISTRIBUTION \
             --create \
             --create-certificate \
             --verbose
-      - name: Add downloaded certificates & private keys to keychain
-        script: |
-          keychain add-certificates
+
+      - name: Add certificates and profiles to keychain
+        script: keychain add-certificates
+
       - name: Set up code signing settings on Xcode project
         script: |
-          xcode-project use-profiles --project "$CM_BUILD_DIR/ios/App/App.xcodeproj"
+          xcode-project use-profiles --project "$XCODE_PROJECT"
+
       - name: Build signed iOS IPA for App Store Connect
         script: |
           xcode-project build-ipa \
-            --project "$CM_BUILD_DIR/ios/App/App.xcodeproj" \
-            --scheme "App"
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+
     artifacts:
       - build/ios/ipa/*.ipa
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Release-iphoneos/*.app
+
     publishing:
       app_store_connect:
         auth: integration
