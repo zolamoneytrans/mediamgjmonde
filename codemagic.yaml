@@ -31,9 +31,12 @@ workflows:
       - name: Add existing distribution certificates to keychain
         script: |
           keychain add-certificates || true
+      - name: Ensure iOS Distribution Certificate exists via API
+        script: |
+          app-store-connect create-certificate --type IOS_DISTRIBUTION || true
       - name: Fetch Apple distribution certificates and profiles
         script: |
-          app-store-connect fetch-signing-files "com.mediamgj.monde" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "com.mediamgj.monde" --type IOS_APP_STORE --create --verbose
       - name: Add downloaded certificates to keychain
         script: |
           keychain add-certificates || true
