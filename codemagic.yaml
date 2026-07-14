@@ -34,30 +34,7 @@ workflows:
         script: |
           app-store-connect create-bundle-id --id "$BUNDLE_ID" --name "Media MGJ Monde" --type APP || true
 
-      - name: Step 1 — Create distribution certificate explicitly (generates + saves private key)
-        script: |
-          mkdir -p "$HOME/Library/MobileDevice/Certificates"
-          echo "Generating RSA 2048 private key and Certificate Signing Request (CSR)..."
-          openssl genrsa -out "$HOME/Library/MobileDevice/Certificates/distribution.key" 2048
-          openssl req -new -key "$HOME/Library/MobileDevice/Certificates/distribution.key" -out "$HOME/Library/MobileDevice/Certificates/distribution.csr" -subj "/CN=Media MGJ Monde/O=Zola Money Trans/C=FR"
-          echo "Submitting CSR to Apple Developer Portal and saving .p12..."
-          app-store-connect certificates create \
-            --type IOS_DISTRIBUTION \
-            --csr "$HOME/Library/MobileDevice/Certificates/distribution.csr" \
-            --private-key "$HOME/Library/MobileDevice/Certificates/distribution.key" \
-            --save \
-            --verbose
-          keychain add-certificates || true
-          security set-key-partition-list -S apple-tool,apple,codesign -s -k "" login.keychain-db || true
-
-      - name: Step 2 — Verify certificate and private key were saved
-        script: |
-          echo "=== Certificates now known to Codemagic ==="
-          app-store-connect list-certificates --type IOS_DISTRIBUTION --pretty
-          echo "=== Keychain identities ==="
-          security find-identity -v -p codesigning || true
-
-      - name: Step 3 — Create provisioning profile using the certificate from Step 1
+      - name: Generate Apple Certificate (.p12) & Provisioning Profile (.mobileprovision) atomically from scratch
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
